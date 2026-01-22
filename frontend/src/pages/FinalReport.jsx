@@ -3,15 +3,29 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import api from '@/lib/api';
-import { ArrowLeft, Download, Car } from 'lucide-react';
+import { ArrowLeft, Download, Car, Mail, Camera, Image } from 'lucide-react';
+
+const photoLabels = {
+  general: 'Genel Görünüm',
+  dashboard: 'Gösterge Paneli',
+  seats: 'Koltuklar',
+  hood: 'Kaput İçi',
+  coolant: 'Soğutma Sıvısı'
+};
 
 const FinalReport = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showMailDialog, setShowMailDialog] = useState(false);
+  const [mailTo, setMailTo] = useState('');
+  const [sendingMail, setSendingMail] = useState(false);
 
   useEffect(() => {
     fetchFinalReport();
@@ -21,6 +35,10 @@ const FinalReport = () => {
     try {
       const response = await api.get(`/vehicles/${id}/final-report`);
       setReport(response.data);
+      // Pre-fill email if customer_email exists
+      if (response.data.vehicle?.customer_email) {
+        setMailTo(response.data.vehicle.customer_email);
+      }
     } catch (error) {
       toast.error('Rapor yüklenemedi');
       navigate('/');
@@ -31,6 +49,24 @@ const FinalReport = () => {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleSendMail = async () => {
+    if (!mailTo || !mailTo.includes('@')) {
+      toast.error('Geçerli bir e-posta adresi girin');
+      return;
+    }
+    
+    setSendingMail(true);
+    try {
+      await api.post(`/vehicles/${id}/send-report`, { email: mailTo });
+      toast.success('Rapor başarıyla gönderildi!');
+      setShowMailDialog(false);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Rapor gönderilemedi');
+    } finally {
+      setSendingMail(false);
+    }
   };
 
   if (loading) {
