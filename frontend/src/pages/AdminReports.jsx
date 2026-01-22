@@ -13,7 +13,8 @@ import { LogOut, Car, PlusCircle, Trash2, MapPin, Settings } from 'lucide-react'
 
 const AdminReports = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('reports');
+  const [activeTab, setActiveTab] = useState('users');
+  const [users, setUsers] = useState([]);
   const [userReports, setUserReports] = useState([]);
   const [brands, setBrands] = useState([]);
   const [locations, setLocations] = useState([]);
