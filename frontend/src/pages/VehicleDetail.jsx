@@ -72,6 +72,24 @@ const VehicleDetail = () => {
     }
   };
 
+  const fetchTestDrives = async () => {
+    try {
+      const response = await api.get(`/test-drives/vehicle/${id}`);
+      setTestDrives(response.data);
+    } catch (error) {
+      console.error('Test sürüşleri yüklenemedi');
+    }
+  };
+
+  const fetchInterimReports = async () => {
+    try {
+      const response = await api.get(`/interim-reports/vehicle/${id}`);
+      setInterimReports(response.data);
+    } catch (error) {
+      console.error('Ara raporlar yüklenemedi');
+    }
+  };
+
   const handleDeliver = async () => {
     if (!deliverKm || parseInt(deliverKm) <= vehicle.km_start) {
       toast.error('Bitiş KM başlangıç KM\'den büyük olmalıdır');
