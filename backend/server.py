@@ -82,7 +82,7 @@ class Vehicle(BaseModel):
     fuel_status: str
     notes: str
     photos: List[VehiclePhoto]
-    status: str  # received, delivered
+    status: str  # received, in_testing, delivered
     received_at: str
     received_by: str
     delivered_at: Optional[str] = None
@@ -93,6 +93,8 @@ class Vehicle(BaseModel):
     total_km: Optional[int] = None
     receive_location: str
     deliver_location: Optional[str] = None
+    test_drive_count: int = 0
+    total_fuel_added: int = 0
 
 class VehicleDeliver(BaseModel):
     notes: Optional[str] = ""
