@@ -20,7 +20,7 @@ function PrivateRoute({ children, allowedRoles = ['staff', 'customer'] }) {
   
   if (!allowedRoles.includes(user.role)) {
     // Redirect based on user role
-    if (user.role === 'customer') {
+    if (user.role === 'company') {
       return <Navigate to="/customer" />;
     } else {
       return <Navigate to="/" />;
