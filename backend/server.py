@@ -134,6 +134,45 @@ class Location(BaseModel):
     name: str
     created_at: str
 
+class TestDriveCreate(BaseModel):
+    vehicle_id: str
+    km_start: int
+    km_end: int
+    notes: Optional[str] = ""
+    photos: List[str] = []
+    fuel_added: int = 0  # Yakıt tutarı
+
+class TestDrive(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    vehicle_id: str
+    user_id: str
+    user_name: str
+    km_start: int
+    km_end: int
+    km_driven: int
+    notes: str
+    photos: List[str]
+    fuel_added: int
+    created_at: str
+
+class InterimReportCreate(BaseModel):
+    vehicle_id: str
+    report_type: str = "test_drive"  # test_drive, inspection
+    notes: str
+    photos: List[str] = []
+
+class InterimReport(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    vehicle_id: str
+    user_id: str
+    user_name: str
+    report_type: str
+    notes: str
+    photos: List[str]
+    created_at: str
+
 # Helper functions
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
