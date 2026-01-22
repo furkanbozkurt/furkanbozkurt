@@ -33,6 +33,7 @@ const VehicleDetail = () => {
   const [loading, setLoading] = useState(true);
   const [showDeliverDialog, setShowDeliverDialog] = useState(false);
   const [deliverNotes, setDeliverNotes] = useState('');
+  const [deliverKm, setDeliverKm] = useState('');
   const [delivering, setDelivering] = useState(false);
   const user = JSON.parse(localStorage.getItem('valetpro_user') || '{}');
 
