@@ -91,10 +91,13 @@ class Vehicle(BaseModel):
     km_start: int
     km_end: Optional[int] = None
     total_km: Optional[int] = None
+    receive_location: str
+    deliver_location: Optional[str] = None
 
 class VehicleDeliver(BaseModel):
     notes: Optional[str] = ""
     km_end: int  # Ending kilometer
+    deliver_location: str  # Teslim etme noktası
 
 class FuelRecordCreate(BaseModel):
     vehicle_id: str
