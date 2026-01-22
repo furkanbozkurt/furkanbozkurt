@@ -216,7 +216,10 @@ async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depen
         "received_by": current_user["id"],
         "delivered_at": None,
         "delivered_by": None,
-        "customer_email": vehicle_data.customer_email
+        "customer_email": vehicle_data.customer_email,
+        "km_start": vehicle_data.km_start,
+        "km_end": None,
+        "total_km": None
     }
     
     await db.vehicles.insert_one(vehicle_doc)
