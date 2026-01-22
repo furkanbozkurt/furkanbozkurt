@@ -81,7 +81,7 @@ class Vehicle(BaseModel):
     plate: str
     brand: str
     model: str
-    company: str
+    company_id: str  # Firma ID
     fuel_status: str
     notes: str
     photos: List[VehiclePhoto]
@@ -98,7 +98,6 @@ class Vehicle(BaseModel):
     deliver_location: Optional[str] = None
     test_drive_count: int = 0
     total_fuel_added: int = 0
-    company_name: Optional[str] = ""  # Firma adı
 
 class VehicleDeliver(BaseModel):
     notes: Optional[str] = ""
