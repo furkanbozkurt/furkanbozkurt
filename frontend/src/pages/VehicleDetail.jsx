@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import api from '@/lib/api';
-import { ArrowLeft, Package, Calendar, User, Fuel, Building2, FileText, CheckCircle2, MapPin } from 'lucide-react';
+import { ArrowLeft, Package, Calendar, User, Fuel, Building2, FileText, CheckCircle2, MapPin, Trash2 } from 'lucide-react';
 
 const photoCategories = [
   { id: 'general', label: 'Genel Görünüm' },
@@ -35,11 +35,13 @@ const VehicleDetail = () => {
   const [interimReports, setInterimReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDeliverDialog, setShowDeliverDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deliverNotes, setDeliverNotes] = useState('');
   const [deliverKm, setDeliverKm] = useState('');
   const [deliverLocation, setDeliverLocation] = useState('');
   const [locations, setLocations] = useState([]);
   const [delivering, setDelivering] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const user = JSON.parse(localStorage.getItem('valetpro_user') || '{}');
 
   useEffect(() => {
