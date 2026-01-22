@@ -32,20 +32,37 @@ const VehicleReceive = () => {
   const [photos, setPhotos] = useState({});
 
   const handlePhotoUpload = (category, e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotos({ ...photos, [category]: reader.result });
-      };
-      reader.readAsDataURL(file);
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      const existingPhotos = photos[category] || [];
+      const newPhotosPromises = files.map(file => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(file);
+        });
+      });
+
+      Promise.all(newPhotosPromises).then(results => {
+        setPhotos({ 
+          ...photos, 
+          [category]: [...existingPhotos, ...results] 
+        });
+      });
     }
   };
 
-  const removePhoto = (category) => {
-    const newPhotos = { ...photos };
-    delete newPhotos[category];
-    setPhotos(newPhotos);
+  const removePhoto = (category, index) => {
+    const categoryPhotos = [...(photos[category] || [])];
+    categoryPhotos.splice(index, 1);
+    
+    if (categoryPhotos.length === 0) {
+      const newPhotos = { ...photos };
+      delete newPhotos[category];
+      setPhotos(newPhotos);
+    } else {
+      setPhotos({ ...photos, [category]: categoryPhotos });
+    }
   };
 
   const handleSubmit = async (e) => {
