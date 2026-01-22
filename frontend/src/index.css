@@ -52,3 +52,34 @@ code {
         letter-spacing: -0.025em;
     }
 }
+
+@media print {
+    @page {
+        margin: 1cm;
+    }
+    body {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+    .print\:hidden {
+        display: none !important;
+    }
+    .print\:block {
+        display: block !important;
+    }
+    .print\:shadow-none {
+        box-shadow: none !important;
+    }
+    .print\:break-inside-avoid {
+        break-inside: avoid;
+    }
+    .print\:p-0 {
+        padding: 0 !important;
+    }
+    .print\:bg-slate-100 {
+        background-color: #f1f5f9 !important;
+    }
+    .print\:text-slate-900 {
+        color: #0f172a !important;
+    }
+}
