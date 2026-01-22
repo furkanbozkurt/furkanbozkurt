@@ -143,6 +143,19 @@ const Login = () => {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="register-company">Firma Adı</Label>
+                    <Input
+                      id="register-company"
+                      type="text"
+                      placeholder="Firma Adınız"
+                      value={registerData.company_name}
+                      onChange={(e) => setRegisterData({ ...registerData, company_name: e.target.value })}
+                      required
+                      data-testid="register-company-input"
+                      className="h-12"
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="register-email">E-posta</Label>
                     <Input
                       id="register-email"
