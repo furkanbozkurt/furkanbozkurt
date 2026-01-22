@@ -160,6 +160,17 @@ const VehicleDetail = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {user.role === 'admin' && (
+                <Button 
+                  variant="outline" 
+                  className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-700"
+                  onClick={() => setShowDeleteDialog(true)}
+                  data-testid="delete-btn"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Sil
+                </Button>
+              )}
               {(user.role === 'admin' || user.role === 'taff_staff') && vehicle.status !== 'delivered' && (
                 <>
                   <Button variant="outline" onClick={() => navigate(`/test-drive/${vehicle.id}`)}>
