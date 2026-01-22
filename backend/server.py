@@ -86,7 +86,7 @@ class Vehicle(BaseModel):
     delivered_at: Optional[str] = None
     delivered_by: Optional[str] = None
     customer_email: Optional[str] = None
-    km_start: Optional[int] = 0
+    km_start: int
     km_end: Optional[int] = None
     total_km: Optional[int] = None
 
