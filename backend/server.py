@@ -758,6 +758,10 @@ async def create_interim_report(report_data: InterimReportCreate, current_user: 
     if not vehicle:
         raise HTTPException(status_code=404, detail="Araç bulunamadı")
     
+    # Check if vehicle is delivered (only admin can add to delivered vehicles)
+    if vehicle["status"] == "delivered" and current_user["role"] != "admin":
+        raise HTTPException(status_code=400, detail="Teslim edilmiş araçlara sadece yöneticiler rapor ekleyebilir")
+    
     report_id = str(uuid.uuid4())
     report_doc = {
         "id": report_id,
