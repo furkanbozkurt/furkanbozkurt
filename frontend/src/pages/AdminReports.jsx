@@ -107,6 +107,32 @@ const AdminReports = () => {
     }
   };
 
+  const handleAddCompany = async (e) => {
+    e.preventDefault();
+    if (!newCompany.name.trim()) return;
+
+    try {
+      await api.post('/companies', newCompany);
+      toast.success('Firma eklendi');
+      setNewCompany({ name: '', contact_person: '', phone: '', email: '' });
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Firma eklenemedi');
+    }
+  };
+
+  const handleDeleteCompany = async (companyId) => {
+    if (!confirm('Bu firmayı silmek istediğinizden emin misiniz?')) return;
+
+    try {
+      await api.delete(`/companies/${companyId}`);
+      toast.success('Firma silindi');
+      fetchData();
+    } catch (error) {
+      toast.error('Firma silinemedi');
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('valetpro_token');
     localStorage.removeItem('valetpro_user');
