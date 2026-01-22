@@ -403,7 +403,7 @@ async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depen
         "plate": vehicle_data.plate.upper(),
         "brand": vehicle_data.brand,
         "model": vehicle_data.model,
-        "company": vehicle_data.company,
+        "company_id": vehicle_data.company_id,
         "fuel_status": vehicle_data.fuel_status,
         "notes": vehicle_data.notes or "",
         "photos": [p.model_dump() for p in vehicle_data.photos],
@@ -419,8 +419,7 @@ async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depen
         "receive_location": vehicle_data.receive_location,
         "deliver_location": None,
         "test_drive_count": 0,
-        "total_fuel_added": 0,
-        "company_name": vehicle_data.company  # Firma adı
+        "total_fuel_added": 0
     }
     
     await db.vehicles.insert_one(vehicle_doc)
