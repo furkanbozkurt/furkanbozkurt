@@ -23,11 +23,12 @@ const VehicleReceive = () => {
   const [loading, setLoading] = useState(false);
   const [brands, setBrands] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [formData, setFormData] = useState({
     plate: '',
     brand: '',
     model: '',
-    company: '',
+    company_id: '',
     fuel_status: '',
     notes: '',
     customer_email: '',
