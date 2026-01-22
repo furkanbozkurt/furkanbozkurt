@@ -61,7 +61,7 @@ class VehiclePhoto(BaseModel):
 
 class VehicleCreate(BaseModel):
     plate: str
-    brand: str
+    brand: str  # Brand name for now, will store as is
     model: str
     company: str
     fuel_status: str
@@ -69,6 +69,8 @@ class VehicleCreate(BaseModel):
     photos: List[VehiclePhoto] = []
     customer_email: Optional[str] = None
     km_start: int  # Starting kilometer
+    receive_location: str  # Teslim alma noktası
+    deliver_location: Optional[str] = None  # Will be set during delivery
 
 class Vehicle(BaseModel):
     model_config = ConfigDict(extra="ignore")
