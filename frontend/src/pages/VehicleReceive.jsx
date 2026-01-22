@@ -21,6 +21,8 @@ const photoCategories = [
 const VehicleReceive = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [brands, setBrands] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [formData, setFormData] = useState({
     plate: '',
     brand: '',
@@ -29,9 +31,27 @@ const VehicleReceive = () => {
     fuel_status: '',
     notes: '',
     customer_email: '',
-    km_start: ''
+    km_start: '',
+    receive_location: ''
   });
   const [photos, setPhotos] = useState({});
+
+  React.useEffect(() => {
+    fetchBrandsAndLocations();
+  }, []);
+
+  const fetchBrandsAndLocations = async () => {
+    try {
+      const [brandsRes, locationsRes] = await Promise.all([
+        api.get('/brands'),
+        api.get('/locations')
+      ]);
+      setBrands(brandsRes.data);
+      setLocations(locationsRes.data);
+    } catch (error) {
+      toast.error('Markalar ve lokasyonlar yüklenemedi');
+    }
+  };
 
   const handlePhotoUpload = (category, e) => {
     const files = Array.from(e.target.files);
