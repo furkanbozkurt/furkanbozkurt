@@ -225,44 +225,61 @@ const VehicleReceive = () => {
           <Card className="border-slate-200">
             <CardHeader>
               <CardTitle>Araç Fotoğrafları (5 Kategori)</CardTitle>
-              <CardDescription>Her kategori için bir fotoğraf yükleyin</CardDescription>
+              <CardDescription>Her kategori için birden fazla fotoğraf yükleyebilirsiniz</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="photo-grid">
-                {photoCategories.map((category) => (
-                  <div key={category.id}>
-                    <Label className="text-xs text-slate-600 mb-2 block">{category.label}</Label>
-                    <div 
-                      className={`photo-upload-box ${photos[category.id] ? 'has-image' : ''}`}
-                      data-testid={`photo-upload-${category.id}`}
-                    >
-                      {photos[category.id] ? (
-                        <div className="relative w-full h-full">
-                          <img src={photos[category.id]} alt={category.label} className="photo-preview" />
-                          <button
-                            type="button"
-                            onClick={() => removePhoto(category.id)}
-                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                            data-testid={`remove-photo-${category.id}`}
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
+              <div className="space-y-6">
+                {photoCategories.map((category) => {
+                  const categoryPhotos = photos[category.id] || [];
+                  const hasPhotos = categoryPhotos.length > 0;
+                  
+                  return (
+                    <div key={category.id} className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-base font-semibold text-slate-900">{category.label}</Label>
+                        <Badge variant={hasPhotos ? "default" : "outline"} className={hasPhotos ? "bg-green-100 text-green-700" : ""}>
+                          {hasPhotos ? `${categoryPhotos.length} fotoğraf` : 'Fotoğraf yok'}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {/* Existing photos */}
+                        {categoryPhotos.map((photoUrl, index) => (
+                          <div key={index} className="photo-upload-box has-image" data-testid={`photo-preview-${category.id}-${index}`}>
+                            <div className="relative w-full h-full">
+                              <img src={photoUrl} alt={`${category.label} ${index + 1}`} className="photo-preview" />
+                              <button
+                                type="button"
+                                onClick={() => removePhoto(category.id, index)}
+                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                data-testid={`remove-photo-${category.id}-${index}`}
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                        
+                        {/* Upload button */}
+                        <div className="photo-upload-box" data-testid={`photo-upload-${category.id}`}>
+                          <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full">
+                            <Camera className="h-8 w-8 text-slate-400 mb-2" />
+                            <span className="text-xs text-slate-500 text-center px-2">
+                              {hasPhotos ? 'Daha fazla ekle' : 'Fotoğraf ekle'}
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={(e) => handlePhotoUpload(category.id, e)}
+                              className="hidden"
+                            />
+                          </label>
                         </div>
-                      ) : (
-                        <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full">
-                          <Camera className="h-8 w-8 text-slate-400 mb-2" />
-                          <span className="text-xs text-slate-500">Fotoğraf Ekle</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handlePhotoUpload(category.id, e)}
-                            className="hidden"
-                          />
-                        </label>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
