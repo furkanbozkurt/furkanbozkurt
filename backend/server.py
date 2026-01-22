@@ -381,6 +381,18 @@ async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depen
     if current_user["role"] not in ["admin", "taff_staff"]:
         raise HTTPException(status_code=403, detail="Sadece TAFF personeli araç teslim alabilir")
     
+    # Check if user has an active vehicle (not delivered)
+    active_vehicle = await db.vehicles.find_one({
+        "received_by": current_user["id"],
+        "status": {"$ne": "delivered"}
+    }, {"_id": 0})
+    
+    if active_vehicle:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Aktif bir aracınız var ({active_vehicle['plate']}). Önce onu otopark pozisyonuna teslim etmelisiniz."
+        )
+    
     # Check if this plate has previous records and validate KM
     previous_vehicles = await db.vehicles.find(
         {"plate": vehicle_data.plate.upper()},
