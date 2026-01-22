@@ -192,6 +192,22 @@ const VehicleDetail = () => {
                 </>
               )}
               <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-slate-400 mt-0.5" />
+                <div>
+                  <p className="text-xs text-slate-500">Teslim Alma Noktası</p>
+                  <p className="text-base font-medium text-slate-900" data-testid="receive-location">{vehicle.receive_location}</p>
+                </div>
+              </div>
+              {vehicle.deliver_location && (
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-slate-400 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-slate-500">Teslim Etme Noktası</p>
+                    <p className="text-base font-medium text-slate-900" data-testid="deliver-location">{vehicle.deliver_location}</p>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-start gap-3">
                 <Calendar className="h-5 w-5 text-slate-400 mt-0.5" />
                 <div>
                   <p className="text-xs text-slate-500">Teslim Alınma</p>
