@@ -75,13 +75,19 @@ const VehicleReceive = () => {
 
     setLoading(true);
     try {
+      // Flatten all photos with their categories
+      const allPhotos = [];
+      Object.entries(photos).forEach(([category, urls]) => {
+        const urlArray = Array.isArray(urls) ? urls : [urls];
+        urlArray.forEach(url => {
+          allPhotos.push({ category, url });
+        });
+      });
+
       const vehicleData = {
         ...formData,
         plate: formData.plate.toUpperCase(),
-        photos: Object.entries(photos).map(([category, url]) => ({
-          category,
-          url
-        }))
+        photos: allPhotos
       };
 
       await api.post('/vehicles', vehicleData);
