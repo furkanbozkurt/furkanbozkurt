@@ -100,6 +100,10 @@ const FinalReport = () => {
               <Download className="mr-2 h-4 w-4" />
               PDF Olarak Kaydet
             </Button>
+            <Button variant="outline" onClick={() => setShowMailDialog(true)}>
+              <Mail className="mr-2 h-4 w-4" />
+              Mail Gönder
+            </Button>
           </div>
         </div>
       </header>
