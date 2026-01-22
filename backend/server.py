@@ -254,6 +254,7 @@ async def login(credentials: UserLogin):
         email=user["email"],
         name=user["name"],
         role=user["role"],
+        company_name=user.get("company_name", ""),
         created_at=user["created_at"]
     )
     
