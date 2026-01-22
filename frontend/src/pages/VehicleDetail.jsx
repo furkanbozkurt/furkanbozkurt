@@ -488,6 +488,32 @@ const VehicleDetail = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent data-testid="delete-dialog">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Araç Sil</DialogTitle>
+            <DialogDescription>
+              {vehicle.brand} {vehicle.model} ({vehicle.plate}) plakalı aracı silmek istediğinizden emin misiniz?
+              Bu işlem geri alınamaz ve ilişkili tüm kayıtlar (test sürüşleri, ara raporlar) da silinecektir.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} data-testid="cancel-delete-btn">
+              İptal
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete} 
+              disabled={deleting} 
+              data-testid="confirm-delete-btn"
+            >
+              {deleting ? 'Siliniyor...' : 'Evet, Sil'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
