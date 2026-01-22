@@ -13,7 +13,21 @@ const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [registerData, setRegisterData] = useState({ email: '', password: '', name: '', role: 'company', company_name: '' });
+  const [registerData, setRegisterData] = useState({ email: '', password: '', name: '', role: 'company', company_id: '' });
+  const [companies, setCompanies] = useState([]);
+
+  React.useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      const response = await api.get('/companies');
+      setCompanies(response.data);
+    } catch (error) {
+      console.error('Firmalar yüklenemedi');
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
