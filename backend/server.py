@@ -827,6 +827,45 @@ async def get_final_report(vehicle_id: str, current_user: dict = Depends(get_cur
         }
     }
 
+# Send report via email (Mock - actual email integration needed)
+class SendReportRequest(BaseModel):
+    email: str
+
+@api_router.post("/vehicles/{vehicle_id}/send-report")
+async def send_vehicle_report(vehicle_id: str, request: SendReportRequest, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] not in ["admin", "taff_staff"]:
+        raise HTTPException(status_code=403, detail="Bu işlem için yetkiniz yok")
+    
+    vehicle = await db.vehicles.find_one({"id": vehicle_id}, {"_id": 0})
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Araç bulunamadı")
+    
+    # Get test drives
+    test_drives = await db.test_drives.find({"vehicle_id": vehicle_id}, {"_id": 0}).to_list(1000)
+    
+    # Calculate summary
+    total_test_km = sum(td["km_driven"] for td in test_drives)
+    total_fuel = sum(td.get("fuel_added", 0) for td in test_drives)
+    
+    # Log the email sending (in production, integrate with email service like SendGrid)
+    print(f"📧 Sending report to: {request.email}")
+    print(f"   Vehicle: {vehicle['plate']} - {vehicle['brand']} {vehicle['model']}")
+    print(f"   Test Drives: {len(test_drives)}, Total KM: {total_test_km}")
+    
+    # In production, you would send actual email here
+    # For now, return success
+    return {
+        "success": True,
+        "message": f"Rapor {request.email} adresine gönderildi",
+        "details": {
+            "plate": vehicle["plate"],
+            "brand": vehicle["brand"],
+            "model": vehicle["model"],
+            "test_drives_count": len(test_drives),
+            "total_km": total_test_km
+        }
+    }
+
 @api_router.get("/reports/user-summary")
 async def get_user_summary(current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "admin":
