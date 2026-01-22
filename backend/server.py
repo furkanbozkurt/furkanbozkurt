@@ -270,6 +270,30 @@ async def login(credentials: UserLogin):
 async def get_me(current_user: dict = Depends(get_current_user)):
     return User(**current_user)
 
+# Admin: Get all users
+@api_router.get("/users", response_model=List[User])
+async def get_users(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler kullanıcı listesini görebilir")
+    
+    users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    return [User(**u) for u in users]
+
+# Admin: Update user role
+@api_router.put("/users/{user_id}/role")
+async def update_user_role(user_id: str, role: str, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler yetki değiştirebilir")
+    
+    if role not in ["admin", "taff_staff", "company"]:
+        raise HTTPException(status_code=400, detail="Geçersiz rol")
+    
+    result = await db.users.update_one({"id": user_id}, {"$set": {"role": role}})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    
+    return {"message": "Kullanıcı yetkisi güncellendi"}
+
 # Vehicle endpoints
 @api_router.post("/vehicles", response_model=Vehicle)
 async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depends(get_current_user)):
