@@ -13,7 +13,7 @@ import InterimReportAdd from '@/pages/InterimReportAdd';
 import FinalReport from '@/pages/FinalReport';
 import '@/App.css';
 
-function PrivateRoute({ children, allowedRoles = ['staff', 'customer'] }) {
+function PrivateRoute({ children, allowedRoles = ['admin', 'taff_staff', 'company'] }) {
   const token = localStorage.getItem('valetpro_token');
   const user = JSON.parse(localStorage.getItem('valetpro_user') || '{}');
   
