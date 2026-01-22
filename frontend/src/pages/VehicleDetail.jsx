@@ -255,9 +255,27 @@ const VehicleDetail = () => {
               {vehicle.brand} {vehicle.model} ({vehicle.plate}) plakalı aracı teslim etmek üzeresiniz.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2 py-4">
-            <Label htmlFor="deliver-notes">Teslim Notu (Opsiyonel)</Label>
-            <Textarea
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="deliver-km">Bitiş KM *</Label>
+              <Input
+                id="deliver-km"
+                type="number"
+                placeholder={`Başlangıç: ${vehicle.km_start} km`}
+                value={deliverKm}
+                onChange={(e) => setDeliverKm(e.target.value)}
+                required
+                min={vehicle.km_start + 1}
+                data-testid="deliver-km-input"
+                className="h-12"
+              />
+              <p className="text-xs text-slate-500">
+                Başlangıç KM: {vehicle.km_start?.toLocaleString('tr-TR')} km (Bu değerden büyük olmalı)
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="deliver-notes">Teslim Notu (Opsiyonel)</Label>
+              <Textarea
               id="deliver-notes"
               placeholder="Teslim sırasındaki notlar..."
               value={deliverNotes}
