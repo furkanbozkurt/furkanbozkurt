@@ -452,6 +452,14 @@ async def get_vehicles(current_user: dict = Depends(get_current_user)):
         # TAFF staff and admin see all vehicles
         vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
     
+    # Add user names
+    for vehicle in vehicles:
+        if vehicle.get("received_by"):
+            user = await db.users.find_one({"id": vehicle["received_by"]}, {"_id": 0, "name": 1})
+            vehicle["received_by_name"] = user["name"] if user else "Bilinmeyen"
+        else:
+            vehicle["received_by_name"] = "Bilinmeyen"
+    
     return [Vehicle(**v) for v in vehicles]
 
 @api_router.get("/vehicles/{vehicle_id}", response_model=Vehicle)
