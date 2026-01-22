@@ -11,6 +11,7 @@ import AdminReports from '@/pages/AdminReports';
 import TestDriveAdd from '@/pages/TestDriveAdd';
 import InterimReportAdd from '@/pages/InterimReportAdd';
 import FinalReport from '@/pages/FinalReport';
+import DeliveredVehicles from '@/pages/DeliveredVehicles';
 import '@/App.css';
 
 function PrivateRoute({ children, allowedRoles = ['admin', 'taff_staff', 'company'] }) {
