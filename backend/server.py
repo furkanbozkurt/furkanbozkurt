@@ -68,6 +68,7 @@ class VehicleCreate(BaseModel):
     notes: Optional[str] = ""
     photos: List[VehiclePhoto] = []
     customer_email: Optional[str] = None
+    km_start: int  # Starting kilometer
 
 class Vehicle(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -85,9 +86,30 @@ class Vehicle(BaseModel):
     delivered_at: Optional[str] = None
     delivered_by: Optional[str] = None
     customer_email: Optional[str] = None
+    km_start: int
+    km_end: Optional[int] = None
+    total_km: Optional[int] = None
 
 class VehicleDeliver(BaseModel):
     notes: Optional[str] = ""
+    km_end: int  # Ending kilometer
+
+class FuelRecordCreate(BaseModel):
+    vehicle_id: str
+    amount: int  # 250, 500, 1000, 1500, 2000, or custom
+    photos: List[str] = []  # Fuel receipt photos
+    notes: Optional[str] = ""
+
+class FuelRecord(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    vehicle_id: str
+    user_id: str
+    user_name: str
+    amount: int
+    photos: List[str]
+    notes: str
+    created_at: str
 
 # Helper functions
 def hash_password(password: str) -> str:
