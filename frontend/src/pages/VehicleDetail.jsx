@@ -54,9 +54,17 @@ const VehicleDetail = () => {
   };
 
   const handleDeliver = async () => {
+    if (!deliverKm || parseInt(deliverKm) <= vehicle.km_start) {
+      toast.error('Bitiş KM başlangıç KM\'den büyük olmalıdır');
+      return;
+    }
+    
     setDelivering(true);
     try {
-      await api.put(`/vehicles/${id}/deliver`, { notes: deliverNotes });
+      await api.put(`/vehicles/${id}/deliver`, { 
+        notes: deliverNotes,
+        km_end: parseInt(deliverKm)
+      });
       toast.success('Araç başarıyla teslim edildi!');
       setShowDeliverDialog(false);
       fetchVehicle();
