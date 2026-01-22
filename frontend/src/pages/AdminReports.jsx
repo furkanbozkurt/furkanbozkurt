@@ -255,6 +255,85 @@ const AdminReports = () => {
             </Card>
           </TabsContent>
 
+          {/* Companies Tab */}
+          <TabsContent value="companies">
+            <div className="space-y-6">
+              <Card className="border-slate-200">
+                <CardHeader>
+                  <CardTitle>Yeni Firma Ekle</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleAddCompany} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <Input
+                        placeholder="Firma Adı *"
+                        value={newCompany.name}
+                        onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
+                        required
+                        className="h-12"
+                      />
+                      <Input
+                        placeholder="İletişim Kişisi"
+                        value={newCompany.contact_person}
+                        onChange={(e) => setNewCompany({ ...newCompany, contact_person: e.target.value })}
+                        className="h-12"
+                      />
+                      <Input
+                        placeholder="Telefon"
+                        value={newCompany.phone}
+                        onChange={(e) => setNewCompany({ ...newCompany, phone: e.target.value })}
+                        className="h-12"
+                      />
+                      <Input
+                        placeholder="Email"
+                        type="email"
+                        value={newCompany.email}
+                        onChange={(e) => setNewCompany({ ...newCompany, email: e.target.value })}
+                        className="h-12"
+                      />
+                    </div>
+                    <Button type="submit" className="h-12">
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Firma Ekle
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+
+              <Card className="border-slate-200">
+                <CardHeader>
+                  <CardTitle>Mevcut Firmalar ({companies.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {companies.map((company) => (
+                      <div key={company.id} className="flex items-start justify-between p-4 border border-slate-200 rounded-sm">
+                        <div>
+                          <p className="font-semibold text-slate-900">{company.name}</p>
+                          {company.contact_person && (
+                            <p className="text-sm text-slate-600">İletişim: {company.contact_person}</p>
+                          )}
+                          <div className="flex gap-4 text-xs text-slate-500 mt-1">
+                            {company.phone && <span>Tel: {company.phone}</span>}
+                            {company.email && <span>Email: {company.email}</span>}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteCompany(company.id)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           {/* User Reports Tab */}
           <TabsContent value="reports">
             <div className="space-y-4">
