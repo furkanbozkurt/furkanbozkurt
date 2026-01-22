@@ -9,13 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import api from '@/lib/api';
-import { LogOut, Car, PlusCircle, Trash2, MapPin, Settings } from 'lucide-react';
+import { LogOut, Car, PlusCircle, Trash2, MapPin, Settings, Eye, FileText } from 'lucide-react';
 
 const AdminReports = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('users');
+  const [activeTab, setActiveTab] = useState('vehicles');
   const [users, setUsers] = useState([]);
   const [userReports, setUserReports] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
   const [brands, setBrands] = useState([]);
   const [locations, setLocations] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -36,18 +37,20 @@ const AdminReports = () => {
 
   const fetchData = async () => {
     try {
-      const [reportsRes, brandsRes, locationsRes, usersRes, companiesRes] = await Promise.all([
+      const [reportsRes, brandsRes, locationsRes, usersRes, companiesRes, vehiclesRes] = await Promise.all([
         api.get('/reports/user-summary'),
         api.get('/brands'),
         api.get('/locations'),
         api.get('/users'),
-        api.get('/companies')
+        api.get('/companies'),
+        api.get('/vehicles')
       ]);
       setUserReports(reportsRes.data);
       setBrands(brandsRes.data);
       setLocations(locationsRes.data);
       setUsers(usersRes.data);
       setCompanies(companiesRes.data);
+      setVehicles(vehiclesRes.data);
     } catch (error) {
       toast.error('Veriler yüklenemedi');
     } finally {
