@@ -45,7 +45,7 @@ const CustomerPortal = () => {
                 <Car className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">ValetPro</h1>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">TAFF OTOPARK</h1>
                 <p className="text-xs text-slate-500">Müşteri Portalı</p>
               </div>
             </div>
