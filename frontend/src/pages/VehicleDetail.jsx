@@ -318,6 +318,82 @@ const VehicleDetail = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Test Drives - Only for TAFF Staff and Admin */}
+        {(user.role === 'admin' || user.role === 'taff_staff') && testDrives.length > 0 && (
+          <Card className="border-slate-200">
+            <CardHeader>
+              <CardTitle>Test Sürüşleri ({testDrives.length})</CardTitle>
+              <CardDescription>Yapılan test sürüşü kayıtları</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {testDrives.map((td) => (
+                  <div key={td.id} className="border border-slate-200 rounded-sm p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="font-semibold text-slate-900">{td.user_name}</p>
+                      <Badge variant="outline">{td.km_driven.toLocaleString('tr-TR')} km</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-slate-500">Başlangıç</p>
+                        <p className="font-medium">{td.km_start.toLocaleString('tr-TR')} km</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500">Bitiş</p>
+                        <p className="font-medium">{td.km_end.toLocaleString('tr-TR')} km</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500">Yakıt</p>
+                        <p className="font-medium">₺{td.fuel_added.toLocaleString('tr-TR')}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500">Tarih</p>
+                        <p className="font-medium">{new Date(td.created_at).toLocaleString('tr-TR')}</p>
+                      </div>
+                    </div>
+                    {td.notes && (
+                      <p className="mt-3 text-sm text-slate-600">{td.notes}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Interim Reports - Only for TAFF Staff and Admin */}
+        {(user.role === 'admin' || user.role === 'taff_staff') && interimReports.length > 0 && (
+          <Card className="border-slate-200">
+            <CardHeader>
+              <CardTitle>Ara Raporlar ({interimReports.length})</CardTitle>
+              <CardDescription>Oluşturulan ara denetim raporları</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {interimReports.map((report) => (
+                  <div key={report.id} className="border border-slate-200 rounded-sm p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="font-semibold text-slate-900">{report.user_name}</p>
+                        <p className="text-xs text-slate-500">{new Date(report.created_at).toLocaleString('tr-TR')}</p>
+                      </div>
+                      <Badge variant="outline">{report.report_type === 'inspection' ? 'Denetim' : 'Test Sürüşü'}</Badge>
+                    </div>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{report.notes}</p>
+                    {report.photos.length > 0 && (
+                      <div className="grid grid-cols-4 gap-2 mt-3">
+                        {report.photos.map((photo, idx) => (
+                          <img key={idx} src={photo} alt={`Rapor ${idx + 1}`} className="w-full aspect-square object-cover rounded" />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </main>
 
       {/* Deliver Dialog */}
