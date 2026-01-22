@@ -6,6 +6,8 @@ import Dashboard from '@/pages/Dashboard';
 import VehicleReceive from '@/pages/VehicleReceive';
 import VehicleDetail from '@/pages/VehicleDetail';
 import CustomerPortal from '@/pages/CustomerPortal';
+import FuelAdd from '@/pages/FuelAdd';
+import AdminReports from '@/pages/AdminReports';
 import '@/App.css';
 
 function PrivateRoute({ children, allowedRoles = ['staff', 'customer'] }) {
