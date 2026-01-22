@@ -430,13 +430,15 @@ async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depen
 async def get_vehicles(current_user: dict = Depends(get_current_user)):
     if current_user["role"] == "company":
         # Company users only see vehicles from their company
-        company_name = current_user.get("company_name", "")
+        company_id = current_user.get("company_id")
+        if not company_id:
+            return []
         vehicles = await db.vehicles.find(
-            {"company_name": company_name},
+            {"company_id": company_id},
             {"_id": 0}
         ).to_list(1000)
     else:
-        # Staff and admin see all vehicles
+        # TAFF staff and admin see all vehicles
         vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
     
     return [Vehicle(**v) for v in vehicles]
