@@ -353,6 +353,84 @@ const VehicleDetail = () => {
           </CardContent>
         </Card>
 
+        {/* Usage Summary - For Admin and TAFF Staff */}
+        {(user.role === 'admin' || user.role === 'taff_staff') && (
+          <Card className="border-slate-200 bg-gradient-to-r from-blue-50 to-slate-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Kullanım Özeti
+              </CardTitle>
+              <CardDescription>Bu aracı kullanan kişiler ve özet bilgiler</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                  <p className="text-3xl font-black text-primary">{testDrives.length}</p>
+                  <p className="text-sm text-slate-600">Test Sürüşü</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                  <p className="text-3xl font-black text-primary">
+                    {[...new Set(testDrives.map(td => td.user_id))].length}
+                  </p>
+                  <p className="text-sm text-slate-600">Farklı Kullanıcı</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                  <p className="text-3xl font-black text-primary">
+                    {testDrives.reduce((sum, td) => sum + td.km_driven, 0).toLocaleString('tr-TR')}
+                  </p>
+                  <p className="text-sm text-slate-600">Toplam Test KM</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                  <p className="text-3xl font-black text-primary">
+                    ₺{testDrives.reduce((sum, td) => sum + td.fuel_added, 0).toLocaleString('tr-TR')}
+                  </p>
+                  <p className="text-sm text-slate-600">Toplam Yakıt</p>
+                </div>
+              </div>
+              
+              {testDrives.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-3">Kullanıcı Bazlı Detay:</h4>
+                  <div className="space-y-2">
+                    {Object.entries(
+                      testDrives.reduce((acc, td) => {
+                        if (!acc[td.user_name]) {
+                          acc[td.user_name] = { count: 0, km: 0, fuel: 0 };
+                        }
+                        acc[td.user_name].count++;
+                        acc[td.user_name].km += td.km_driven;
+                        acc[td.user_name].fuel += td.fuel_added;
+                        return acc;
+                      }, {})
+                    ).map(([userName, stats]) => (
+                      <div key={userName} className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                            <User className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-slate-900">{userName}</p>
+                            <p className="text-xs text-slate-500">{stats.count} test sürüşü</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-slate-900">{stats.km.toLocaleString('tr-TR')} km</p>
+                          <p className="text-xs text-slate-500">₺{stats.fuel.toLocaleString('tr-TR')} yakıt</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {testDrives.length === 0 && (
+                <p className="text-center text-slate-500 py-4">Henüz test sürüşü yapılmamış</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Test Drives - Only for TAFF Staff and Admin */}
         {(user.role === 'admin' || user.role === 'taff_staff') && testDrives.length > 0 && (
           <Card className="border-slate-200">
