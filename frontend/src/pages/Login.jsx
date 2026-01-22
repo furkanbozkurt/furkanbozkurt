@@ -13,7 +13,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [registerData, setRegisterData] = useState({ email: '', password: '', name: '', role: 'taff_staff' });
+  const [registerData, setRegisterData] = useState({ email: '', password: '', name: '', role: 'company' });
 
   const handleLogin = async (e) => {
     e.preventDefault();
