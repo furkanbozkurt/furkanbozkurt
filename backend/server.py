@@ -224,6 +224,7 @@ async def register(user_data: UserCreate):
         "password": hashed_pw,
         "name": user_data.name,
         "role": user_data.role,
+        "company_name": user_data.company_name or "",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
@@ -235,6 +236,7 @@ async def register(user_data: UserCreate):
         email=user_data.email,
         name=user_data.name,
         role=user_data.role,
+        company_name=user_doc["company_name"],
         created_at=user_doc["created_at"]
     )
     
