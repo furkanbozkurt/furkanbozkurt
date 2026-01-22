@@ -36,7 +36,8 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     name: str
-    role: str = "taff_staff"  # admin, taff_staff (TAFF personel), company (firma)
+    role: str = "company"  # admin, taff_staff (TAFF personel), company (firma)
+    company_name: Optional[str] = ""  # Firma adı
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -48,6 +49,7 @@ class User(BaseModel):
     email: str
     name: str
     role: str
+    company_name: str
     created_at: str
 
 class Token(BaseModel):
