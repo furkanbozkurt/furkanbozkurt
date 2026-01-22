@@ -283,6 +283,7 @@ const VehicleDetail = () => {
               rows={3}
               data-testid="deliver-notes-input"
             />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDeliverDialog(false)} data-testid="cancel-deliver-btn">
