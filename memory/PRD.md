@@ -25,23 +25,21 @@ Araç otopark yönetim sistemi. Araç check-in/check-out, test sürüşleri, yak
 ## Implemented Features (22 Jan 2026)
 
 ### Session 1 - Bug Fixes
-- ✅ **P0**: PrivateRoute roller düzeltildi (raporlar açılmıyor sorunu)
+- ✅ PrivateRoute roller düzeltildi (raporlar açılmıyor sorunu)
 - ✅ Dashboard'da received_by_name gösterimi
 - ✅ Admin araç silme yetkisi
 
 ### Session 2 - Admin Raporları İyileştirmesi
-- ✅ **Admin Panelinde "Araç Raporları" sekmesi** - Tüm araçlar tablo halinde
-  - Plaka, Marka/Model, Firma, Teslim Alan, Durum, KM bilgileri
-  - Plakaya tıklayınca araç detayına gitme
-  - Final Rapor butonuyla PDF görüntüleme
-- ✅ **Araç Detayında "Kullanım Özeti" bölümü**
-  - Test Sürüşü sayısı
-  - Farklı Kullanıcı sayısı
-  - Toplam Test KM
-  - Toplam Yakıt
-  - Kullanıcı bazlı detay tablosu
-- ✅ **Araç detayında "Teslim Alan" bilgisi**
-- ✅ **Final Rapor sayfası** - PDF olarak kaydetme özelliği
+- ✅ Admin Panelinde "Araç Raporları" sekmesi
+- ✅ Araç Detayında "Kullanım Özeti" bölümü
+- ✅ Final Rapor sayfası - PDF olarak kaydetme
+
+### Session 3 - Dashboard ve Final Rapor İyileştirmesi
+- ✅ **Dashboard sadece teslimdeki araçları gösteriyor**
+- ✅ **"Teslim Edilenler" ayrı sayfa** (/delivered) - tablo formatında liste
+- ✅ **Final Raporda fotoğraflar** - Araç Fotoğrafları bölümü eklendi
+- ✅ **Mail gönderme özelliği** - Final raporu e-posta ile gönderme (MOCK - gerçek entegrasyon gerekli)
+- ✅ Teslim Bilgilerine "Teslim Alan" eklendi
 
 ---
 
@@ -54,6 +52,7 @@ Araç otopark yönetim sistemi. Araç check-in/check-out, test sürüşleri, yak
 - `/api/auth/login`, `/api/auth/register`, `/api/auth/me`
 - `/api/vehicles`, `/api/vehicles/{id}`, `/api/vehicles/{id}/deliver`
 - `/api/vehicles/{id}` DELETE (admin only)
+- `/api/vehicles/{id}/send-report` POST (mail gönderme - MOCK)
 - `/api/users`, `/api/users/{id}/approve`, `/api/users/{id}/role`
 - `/api/companies`, `/api/brands`, `/api/locations`
 - `/api/test-drives`, `/api/interim-reports`
@@ -69,6 +68,7 @@ Araç otopark yönetim sistemi. Araç check-in/check-out, test sürüşleri, yak
 ## Backlog / Future Tasks
 
 ### P1 - High Priority
+- [ ] Gerçek e-posta entegrasyonu (SendGrid/SMTP)
 - [ ] Fotoğraf yükleme iyileştirmesi: Chunked upload veya cloud storage
 
 ### P2 - Medium Priority
