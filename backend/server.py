@@ -201,6 +201,11 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         user = await db.users.find_one({"id": user_id}, {"_id": 0})
         if user is None:
             raise HTTPException(status_code=401, detail="Kullanıcı bulunamadı")
+        
+        # Ensure backward compatibility for existing users without company_name
+        if "company_name" not in user:
+            user["company_name"] = ""
+            
         return user
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token süresi dolmuş")
