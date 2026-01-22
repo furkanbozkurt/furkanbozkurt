@@ -201,6 +201,22 @@ async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depen
     if current_user["role"] != "staff":
         raise HTTPException(status_code=403, detail="Sadece personel araç teslim alabilir")
     
+    # Check if this plate has previous records and validate KM
+    previous_vehicles = await db.vehicles.find(
+        {"plate": vehicle_data.plate.upper()},
+        {"_id": 0}
+    ).sort("received_at", -1).limit(1).to_list(1)
+    
+    if previous_vehicles:
+        last_vehicle = previous_vehicles[0]
+        last_km = last_vehicle.get("km_end") or last_vehicle.get("km_start", 0)
+        
+        if vehicle_data.km_start <= last_km:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Başlangıç KM ({vehicle_data.km_start}) önceki kayıttaki KM'den ({last_km}) büyük olmalıdır"
+            )
+    
     vehicle_id = str(uuid.uuid4())
     vehicle_doc = {
         "id": vehicle_id,
