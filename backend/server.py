@@ -662,7 +662,7 @@ async def get_user_summary(current_user: dict = Depends(get_current_user)):
             }
         
         user_stats[user_id]["total_vehicles"] += 1
-        user_stats[user_id]["total_km"] += vehicle.get("total_km", 0)
+        user_stats[user_id]["total_km"] += vehicle.get("total_km", 0) or 0
         
         # Get fuel records for this vehicle
         fuel_records = await db.fuel_records.find(
