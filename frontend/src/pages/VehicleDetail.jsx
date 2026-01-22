@@ -10,6 +10,14 @@ import { toast } from 'sonner';
 import api from '@/lib/api';
 import { ArrowLeft, Package, Calendar, User, Fuel, Building2, FileText, CheckCircle2 } from 'lucide-react';
 
+const photoCategories = [
+  { id: 'general', label: 'Genel Görünüm' },
+  { id: 'dashboard', label: 'Gösterge Paneli' },
+  { id: 'seats', label: 'Ön ve Arka Koltuk' },
+  { id: 'hood', label: 'Kaput İçi' },
+  { id: 'coolant', label: 'Motor Soğutma Sıvısı' }
+];
+
 const photoLabels = {
   general: 'Genel Görünüm',
   dashboard: 'Gösterge Paneli',
