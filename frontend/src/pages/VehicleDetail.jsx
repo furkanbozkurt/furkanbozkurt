@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import api from '@/lib/api';
-import { ArrowLeft, Package, Calendar, User, Fuel, Building2, FileText, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Package, Calendar, User, Fuel, Building2, FileText, CheckCircle2, MapPin } from 'lucide-react';
 
 const photoCategories = [
   { id: 'general', label: 'Genel Görünüm' },
