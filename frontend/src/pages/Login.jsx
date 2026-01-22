@@ -177,8 +177,8 @@ const Login = () => {
                       className="flex h-12 w-full rounded-sm border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       data-testid="register-role-select"
                     >
-                      <option value="staff">Personel</option>
-                      <option value="customer">Müşteri</option>
+                      <option value="taff_staff">TAFF Personel</option>
+                      <option value="company">Firma</option>
                       <option value="admin">Yönetici</option>
                     </select>
                   </div>
