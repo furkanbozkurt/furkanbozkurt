@@ -263,10 +263,14 @@ async def deliver_vehicle(vehicle_id: str, deliver_data: VehicleDeliver, current
     if vehicle["status"] == "delivered":
         raise HTTPException(status_code=400, detail="Bu araç zaten teslim edilmiş")
     
+    total_km = deliver_data.km_end - vehicle["km_start"]
+    
     update_data = {
         "status": "delivered",
         "delivered_at": datetime.now(timezone.utc).isoformat(),
-        "delivered_by": current_user["id"]
+        "delivered_by": current_user["id"],
+        "km_end": deliver_data.km_end,
+        "total_km": total_km
     }
     
     if deliver_data.notes:
