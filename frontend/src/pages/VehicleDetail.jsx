@@ -45,6 +45,10 @@ const VehicleDetail = () => {
   useEffect(() => {
     fetchVehicle();
     fetchLocations();
+    if (user.role === 'admin' || user.role === 'taff_staff') {
+      fetchTestDrives();
+      fetchInterimReports();
+    }
   }, [id]);
 
   const fetchVehicle = async () => {
