@@ -269,13 +269,18 @@ async def login(credentials: UserLogin):
     if not user or not verify_password(credentials.password, user["password"]):
         raise HTTPException(status_code=401, detail="Email veya şifre hatalı")
     
+    # Check if user is approved (except for admin and taff_staff)
+    if user.get("role") == "company" and not user.get("approved", False):
+        raise HTTPException(status_code=403, detail="Hesabınız henüz onaylanmamış. Lütfen yöneticiyle iletişime geçin.")
+    
     access_token = create_access_token({"sub": user["id"]})
     user_response = User(
         id=user["id"],
         email=user["email"],
         name=user["name"],
         role=user["role"],
-        company_name=user.get("company_name", ""),
+        company_id=user.get("company_id"),
+        approved=user.get("approved", False),
         created_at=user["created_at"]
     )
     
