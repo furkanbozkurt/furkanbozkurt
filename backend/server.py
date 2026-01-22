@@ -258,7 +258,9 @@ async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depen
         "customer_email": vehicle_data.customer_email,
         "km_start": vehicle_data.km_start,
         "km_end": None,
-        "total_km": None
+        "total_km": None,
+        "receive_location": vehicle_data.receive_location,
+        "deliver_location": None
     }
     
     await db.vehicles.insert_one(vehicle_doc)
