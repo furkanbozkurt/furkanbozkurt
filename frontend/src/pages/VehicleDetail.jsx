@@ -31,6 +31,8 @@ const VehicleDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [vehicle, setVehicle] = useState(null);
+  const [testDrives, setTestDrives] = useState([]);
+  const [interimReports, setInterimReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDeliverDialog, setShowDeliverDialog] = useState(false);
   const [deliverNotes, setDeliverNotes] = useState('');
