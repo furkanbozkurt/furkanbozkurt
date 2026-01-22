@@ -178,6 +178,22 @@ const AdminReports = () => {
                         )}
                       </div>
                       <div className="flex items-center gap-3">
+                        {!user.approved && user.role === 'company' && (
+                          <Button
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                await api.put(`/users/${user.id}/approve`);
+                                toast.success('Kullanıcı onaylandı');
+                                fetchData();
+                              } catch (error) {
+                                toast.error('Onaylama başarısız');
+                              }
+                            }}
+                          >
+                            Onayla
+                          </Button>
+                        )}
                         <select
                           value={user.role}
                           onChange={async (e) => {
