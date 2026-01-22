@@ -682,8 +682,9 @@ async def create_test_drive(test_data: TestDriveCreate, current_user: dict = Dep
     if not vehicle:
         raise HTTPException(status_code=404, detail="Araç bulunamadı")
     
-    if vehicle["status"] == "delivered":
-        raise HTTPException(status_code=400, detail="Teslim edilmiş araçta test sürüşü yapılamaz")
+    # Check if vehicle is delivered (only admin can add to delivered vehicles)
+    if vehicle["status"] == "delivered" and current_user["role"] != "admin":
+        raise HTTPException(status_code=400, detail="Teslim edilmiş araçlara sadece yöneticiler test sürüşü ekleyebilir")
     
     # Validate KM
     last_km = vehicle.get("km_end") or vehicle.get("km_start", 0)
