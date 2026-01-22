@@ -322,14 +322,15 @@ async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depen
 
 @api_router.get("/vehicles", response_model=List[Vehicle])
 async def get_vehicles(current_user: dict = Depends(get_current_user)):
-    if current_user["role"] == "customer":
-        # Customers only see their own vehicles
+    if current_user["role"] == "company":
+        # Company users only see vehicles from their company
+        company_name = current_user.get("company_name", "")
         vehicles = await db.vehicles.find(
-            {"customer_email": current_user["email"]},
+            {"company_name": company_name},
             {"_id": 0}
         ).to_list(1000)
     else:
-        # Staff see all vehicles
+        # Staff and admin see all vehicles
         vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
     
     return [Vehicle(**v) for v in vehicles]
