@@ -454,8 +454,8 @@ async def delete_location(location_id: str, current_user: dict = Depends(get_cur
 # Fuel Records endpoints
 @api_router.post("/fuel-records", response_model=FuelRecord)
 async def create_fuel_record(fuel_data: FuelRecordCreate, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "staff":
-        raise HTTPException(status_code=403, detail="Sadece personel yakıt kaydı ekleyebilir")
+    if current_user["role"] not in ["admin", "taff_staff"]:
+        raise HTTPException(status_code=403, detail="Sadece TAFF personeli yakıt kaydı ekleyebilir")
     
     # Verify vehicle exists and is received
     vehicle = await db.vehicles.find_one({"id": fuel_data.vehicle_id}, {"_id": 0})
