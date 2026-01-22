@@ -157,17 +157,20 @@ const Login = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="register-company">Firma Adı</Label>
-                    <Input
+                    <Label htmlFor="register-company">Firma *</Label>
+                    <select
                       id="register-company"
-                      type="text"
-                      placeholder="Firma Adınız"
-                      value={registerData.company_name}
-                      onChange={(e) => setRegisterData({ ...registerData, company_name: e.target.value })}
+                      value={registerData.company_id}
+                      onChange={(e) => setRegisterData({ ...registerData, company_id: e.target.value })}
                       required
-                      data-testid="register-company-input"
-                      className="h-12"
-                    />
+                      className="flex h-12 w-full rounded-sm border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      data-testid="register-company-select"
+                    >
+                      <option value="">Firma Seçin</option>
+                      {companies.map((comp) => (
+                        <option key={comp.id} value={comp.id}>{comp.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="register-email">E-posta</Label>
