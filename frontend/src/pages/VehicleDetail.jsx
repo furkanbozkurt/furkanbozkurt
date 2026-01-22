@@ -120,6 +120,20 @@ const VehicleDetail = () => {
     }
   };
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await api.delete(`/vehicles/${id}`);
+      toast.success('Araç başarıyla silindi!');
+      navigate('/');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Araç silinemedi');
+    } finally {
+      setDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
