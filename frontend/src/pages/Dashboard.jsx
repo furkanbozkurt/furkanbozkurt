@@ -158,11 +158,11 @@ const Dashboard = () => {
                         <span className="license-plate-content">{vehicle.plate}</span>
                       </div>
                       <Badge 
-                        variant={vehicle.status === 'received' ? 'default' : 'secondary'}
-                        className={vehicle.status === 'received' ? 'bg-green-100 text-green-700 hover:bg-green-100' : 'bg-blue-100 text-blue-700 hover:bg-blue-100'}
+                        variant="default"
+                        className="bg-green-100 text-green-700 hover:bg-green-100"
                         data-testid={`vehicle-status-${vehicle.plate}`}
                       >
-                        {vehicle.status === 'received' ? 'Teslimdeki' : 'Teslim Edildi'}
+                        Teslimdeki
                       </Badge>
                     </div>
                     <div className="space-y-2">
