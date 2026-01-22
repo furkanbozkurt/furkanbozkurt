@@ -34,14 +34,16 @@ const AdminReports = () => {
 
   const fetchData = async () => {
     try {
-      const [reportsRes, brandsRes, locationsRes] = await Promise.all([
+      const [reportsRes, brandsRes, locationsRes, usersRes] = await Promise.all([
         api.get('/reports/user-summary'),
         api.get('/brands'),
-        api.get('/locations')
+        api.get('/locations'),
+        api.get('/users')
       ]);
       setUserReports(reportsRes.data);
       setBrands(brandsRes.data);
       setLocations(locationsRes.data);
+      setUsers(usersRes.data);
     } catch (error) {
       toast.error('Veriler yüklenemedi');
     } finally {
