@@ -318,7 +318,8 @@ async def deliver_vehicle(vehicle_id: str, deliver_data: VehicleDeliver, current
         "delivered_at": datetime.now(timezone.utc).isoformat(),
         "delivered_by": current_user["id"],
         "km_end": deliver_data.km_end,
-        "total_km": total_km
+        "total_km": total_km,
+        "deliver_location": deliver_data.deliver_location
     }
     
     if deliver_data.notes:
