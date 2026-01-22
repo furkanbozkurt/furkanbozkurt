@@ -53,6 +53,7 @@ Araç otopark yönetim sistemi. Araç check-in/check-out, test sürüşleri, yak
 ## API Endpoints
 - `/api/auth/login`, `/api/auth/register`, `/api/auth/me`
 - `/api/vehicles`, `/api/vehicles/{id}`, `/api/vehicles/{id}/deliver`
+- `/api/vehicles/{id}` DELETE (admin only)
 - `/api/users`, `/api/users/{id}/approve`, `/api/users/{id}/role`
 - `/api/companies`, `/api/brands`, `/api/locations`
 - `/api/test-drives`, `/api/interim-reports`
@@ -68,12 +69,9 @@ Araç otopark yönetim sistemi. Araç check-in/check-out, test sürüşleri, yak
 ## Backlog / Future Tasks
 
 ### P1 - High Priority
-- [ ] PDF Export: Gerçek PDF dosyası oluşturma (şu an window.print() kullanılıyor)
 - [ ] Fotoğraf yükleme iyileştirmesi: Chunked upload veya cloud storage
 
 ### P2 - Medium Priority
-- [ ] Admin rapor UI yeniden tasarımı
-- [ ] Yakıt geçmişi görüntüleme
 - [ ] Excel export
 - [ ] Rapor hız optimizasyonu (database indexleri)
 
