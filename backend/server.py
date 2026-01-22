@@ -82,12 +82,14 @@ class Vehicle(BaseModel):
     brand: str
     model: str
     company_id: str  # Firma ID
+    company: Optional[str] = None  # Firma adı
     fuel_status: str
     notes: str
     photos: List[VehiclePhoto]
     status: str  # received, in_testing, delivered
     received_at: str
     received_by: str
+    received_by_name: Optional[str] = None  # Teslim alan kişi adı
     delivered_at: Optional[str] = None
     delivered_by: Optional[str] = None
     customer_email: Optional[str] = None
