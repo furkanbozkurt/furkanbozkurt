@@ -139,6 +139,21 @@ class Location(BaseModel):
     name: str
     created_at: str
 
+class CompanyCreate(BaseModel):
+    name: str
+    contact_person: Optional[str] = ""
+    phone: Optional[str] = ""
+    email: Optional[str] = ""
+
+class Company(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    contact_person: str
+    phone: str
+    email: str
+    created_at: str
+
 class TestDriveCreate(BaseModel):
     vehicle_id: str
     km_start: int
