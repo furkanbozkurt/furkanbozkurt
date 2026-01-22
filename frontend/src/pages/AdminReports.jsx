@@ -154,6 +154,7 @@ const AdminReports = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
             <TabsTrigger value="users">Kullanıcı Yönetimi</TabsTrigger>
+            <TabsTrigger value="companies">Firma Yönetimi</TabsTrigger>
             <TabsTrigger value="reports">Kullanıcı Raporları</TabsTrigger>
             <TabsTrigger value="brands">Marka Yönetimi</TabsTrigger>
             <TabsTrigger value="locations">Lokasyon Yönetimi</TabsTrigger>
