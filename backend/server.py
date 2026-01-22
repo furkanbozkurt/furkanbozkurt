@@ -488,6 +488,156 @@ async def get_vehicle_fuel_records(vehicle_id: str, current_user: dict = Depends
     ).to_list(1000)
     return [FuelRecord(**r) for r in fuel_records]
 
+# Test Drives endpoints
+@api_router.post("/test-drives", response_model=TestDrive)
+async def create_test_drive(test_data: TestDriveCreate, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] not in ["admin", "taff_staff"]:
+        raise HTTPException(status_code=403, detail="Sadece TAFF personeli test sürüşü yapabilir")
+    
+    vehicle = await db.vehicles.find_one({"id": test_data.vehicle_id}, {"_id": 0})
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Araç bulunamadı")
+    
+    if vehicle["status"] == "delivered":
+        raise HTTPException(status_code=400, detail="Teslim edilmiş araçta test sürüşü yapılamaz")
+    
+    # Validate KM
+    last_km = vehicle.get("km_end") or vehicle.get("km_start", 0)
+    # Get last test drive KM if exists
+    last_test = await db.test_drives.find(
+        {"vehicle_id": test_data.vehicle_id},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(1).to_list(1)
+    
+    if last_test:
+        last_km = last_test[0]["km_end"]
+    
+    if test_data.km_start < last_km:
+        raise HTTPException(status_code=400, detail=f"Başlangıç KM son kayıttan ({last_km}) düşük olamaz")
+    
+    if test_data.km_end <= test_data.km_start:
+        raise HTTPException(status_code=400, detail="Bitiş KM başlangıç KM'den büyük olmalıdır")
+    
+    test_id = str(uuid.uuid4())
+    km_driven = test_data.km_end - test_data.km_start
+    
+    test_doc = {
+        "id": test_id,
+        "vehicle_id": test_data.vehicle_id,
+        "user_id": current_user["id"],
+        "user_name": current_user["name"],
+        "km_start": test_data.km_start,
+        "km_end": test_data.km_end,
+        "km_driven": km_driven,
+        "notes": test_data.notes or "",
+        "photos": test_data.photos,
+        "fuel_added": test_data.fuel_added,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.test_drives.insert_one(test_doc)
+    
+    # Update vehicle status and counters
+    await db.vehicles.update_one(
+        {"id": test_data.vehicle_id},
+        {
+            "$set": {"status": "in_testing"},
+            "$inc": {
+                "test_drive_count": 1,
+                "total_fuel_added": test_data.fuel_added
+            }
+        }
+    )
+    
+    return TestDrive(**test_doc)
+
+@api_router.get("/test-drives/vehicle/{vehicle_id}", response_model=List[TestDrive])
+async def get_vehicle_test_drives(vehicle_id: str, current_user: dict = Depends(get_current_user)):
+    # Only admin and taff_staff can see test drives
+    if current_user["role"] not in ["admin", "taff_staff"]:
+        raise HTTPException(status_code=403, detail="Bu bilgilere erişim yetkiniz yok")
+    
+    test_drives = await db.test_drives.find(
+        {"vehicle_id": vehicle_id},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(1000)
+    
+    return [TestDrive(**td) for td in test_drives]
+
+# Interim Reports endpoints
+@api_router.post("/interim-reports", response_model=InterimReport)
+async def create_interim_report(report_data: InterimReportCreate, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] not in ["admin", "taff_staff"]:
+        raise HTTPException(status_code=403, detail="Sadece TAFF personeli ara rapor oluşturabilir")
+    
+    vehicle = await db.vehicles.find_one({"id": report_data.vehicle_id}, {"_id": 0})
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Araç bulunamadı")
+    
+    report_id = str(uuid.uuid4())
+    report_doc = {
+        "id": report_id,
+        "vehicle_id": report_data.vehicle_id,
+        "user_id": current_user["id"],
+        "user_name": current_user["name"],
+        "report_type": report_data.report_type,
+        "notes": report_data.notes,
+        "photos": report_data.photos,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.interim_reports.insert_one(report_doc)
+    return InterimReport(**report_doc)
+
+@api_router.get("/interim-reports/vehicle/{vehicle_id}", response_model=List[InterimReport])
+async def get_vehicle_interim_reports(vehicle_id: str, current_user: dict = Depends(get_current_user)):
+    # Only admin and taff_staff can see interim reports
+    if current_user["role"] not in ["admin", "taff_staff"]:
+        raise HTTPException(status_code=403, detail="Bu bilgilere erişim yetkiniz yok")
+    
+    reports = await db.interim_reports.find(
+        {"vehicle_id": vehicle_id},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(1000)
+    
+    return [InterimReport(**r) for r in reports]
+
+# Final Report (PDF) endpoint
+@api_router.get("/vehicles/{vehicle_id}/final-report")
+async def get_final_report(vehicle_id: str, current_user: dict = Depends(get_current_user)):
+    vehicle = await db.vehicles.find_one({"id": vehicle_id}, {"_id": 0})
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Araç bulunamadı")
+    
+    # Get all related data
+    test_drives = await db.test_drives.find(
+        {"vehicle_id": vehicle_id},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(1000)
+    
+    fuel_records = await db.fuel_records.find(
+        {"vehicle_id": vehicle_id},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(1000)
+    
+    # Calculate totals
+    total_test_km = sum(td["km_driven"] for td in test_drives)
+    total_fuel = sum(fr["amount"] for fr in fuel_records) + sum(td.get("fuel_added", 0) for td in test_drives)
+    
+    return {
+        "vehicle": vehicle,
+        "test_drives": test_drives,
+        "fuel_records": fuel_records,
+        "summary": {
+            "total_test_drives": len(test_drives),
+            "total_test_km": total_test_km,
+            "total_fuel_spent": total_fuel,
+            "initial_km": vehicle["km_start"],
+            "final_km": vehicle.get("km_end"),
+            "total_km": vehicle.get("total_km", 0)
+        }
+    }
+
 @api_router.get("/reports/user-summary")
 async def get_user_summary(current_user: dict = Depends(get_current_user)):
     if current_user["role"] != "admin":
