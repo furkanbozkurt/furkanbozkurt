@@ -334,6 +334,49 @@ const FinalReport = () => {
           <p className="mt-1">Rapor Tarihi: {new Date().toLocaleString('tr-TR')}</p>
         </div>
       </main>
+
+      {/* Mail Dialog */}
+      <Dialog open={showMailDialog} onOpenChange={setShowMailDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Raporu Mail ile Gönder</DialogTitle>
+            <DialogDescription>
+              Final raporunu belirtilen e-posta adresine gönderin
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">E-posta Adresi</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="ornek@firma.com"
+                value={mailTo}
+                onChange={(e) => setMailTo(e.target.value)}
+                data-testid="email-input"
+              />
+            </div>
+            <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-600">
+              <p className="font-medium mb-1">Gönderilecek içerik:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Araç bilgileri ({vehicle.plate})</li>
+                <li>Test sürüşü özeti</li>
+                <li>Teslim bilgileri</li>
+                <li>Yakıt kayıtları</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMailDialog(false)}>
+              İptal
+            </Button>
+            <Button onClick={handleSendMail} disabled={sendingMail}>
+              <Mail className="mr-2 h-4 w-4" />
+              {sendingMail ? 'Gönderiliyor...' : 'Gönder'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
