@@ -500,7 +500,7 @@ async def get_vehicle(vehicle_id: str, current_user: dict = Depends(get_current_
 
 @api_router.put("/vehicles/{vehicle_id}/deliver", response_model=Vehicle)
 async def deliver_vehicle(vehicle_id: str, deliver_data: VehicleDeliver, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "staff":
+    if current_user["role"] not in ["admin", "taff_staff"]:
         raise HTTPException(status_code=403, detail="Sadece personel araç teslim edebilir")
     
     vehicle = await db.vehicles.find_one({"id": vehicle_id}, {"_id": 0})
