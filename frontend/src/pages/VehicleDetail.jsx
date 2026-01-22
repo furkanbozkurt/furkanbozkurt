@@ -275,6 +275,13 @@ const VehicleDetail = () => {
                 </div>
               )}
               <div className="flex items-start gap-3">
+                <User className="h-5 w-5 text-slate-400 mt-0.5" />
+                <div>
+                  <p className="text-xs text-slate-500">Teslim Alan</p>
+                  <p className="text-base font-medium text-slate-900" data-testid="received-by">{vehicle.received_by_name || 'Bilinmeyen'}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
                 <Calendar className="h-5 w-5 text-slate-400 mt-0.5" />
                 <div>
                   <p className="text-xs text-slate-500">Teslim Alınma</p>
