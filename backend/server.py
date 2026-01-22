@@ -262,8 +262,8 @@ async def get_me(current_user: dict = Depends(get_current_user)):
 # Vehicle endpoints
 @api_router.post("/vehicles", response_model=Vehicle)
 async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "staff":
-        raise HTTPException(status_code=403, detail="Sadece personel araç teslim alabilir")
+    if current_user["role"] not in ["admin", "taff_staff"]:
+        raise HTTPException(status_code=403, detail="Sadece TAFF personeli araç teslim alabilir")
     
     # Check if this plate has previous records and validate KM
     previous_vehicles = await db.vehicles.find(
@@ -301,7 +301,9 @@ async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depen
         "km_end": None,
         "total_km": None,
         "receive_location": vehicle_data.receive_location,
-        "deliver_location": None
+        "deliver_location": None,
+        "test_drive_count": 0,
+        "total_fuel_added": 0
     }
     
     await db.vehicles.insert_one(vehicle_doc)
