@@ -26,6 +26,8 @@ const Login = () => {
       
       if (response.data.user.role === 'customer') {
         navigate('/customer');
+      } else if (response.data.user.role === 'admin') {
+        navigate('/reports');
       } else {
         navigate('/');
       }
@@ -47,6 +49,8 @@ const Login = () => {
       
       if (response.data.user.role === 'customer') {
         navigate('/customer');
+      } else if (response.data.user.role === 'admin') {
+        navigate('/reports');
       } else {
         navigate('/');
       }
@@ -72,7 +76,7 @@ const Login = () => {
               <Car className="h-12 w-12 text-white" />
             </div>
           </div>
-          <h1 className="text-4xl font-black text-white tracking-tight mb-2">ValetPro</h1>
+          <h1 className="text-4xl font-black text-white tracking-tight mb-2">TAFF OTOPARK</h1>
           <p className="text-slate-300 text-sm">Otopark Yönetim Sistemi</p>
         </div>
 
@@ -175,6 +179,7 @@ const Login = () => {
                     >
                       <option value="staff">Personel</option>
                       <option value="customer">Müşteri</option>
+                      <option value="admin">Yönetici</option>
                     </select>
                   </div>
                   <Button type="submit" className="w-full h-12" disabled={loading} data-testid="register-submit-btn">
