@@ -111,6 +111,24 @@ class FuelRecord(BaseModel):
     notes: str
     created_at: str
 
+class BrandCreate(BaseModel):
+    name: str
+
+class Brand(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    created_at: str
+
+class LocationCreate(BaseModel):
+    name: str
+
+class Location(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    created_at: str
+
 # Helper functions
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
