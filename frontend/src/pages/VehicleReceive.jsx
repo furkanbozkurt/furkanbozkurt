@@ -89,6 +89,7 @@ const VehicleReceive = () => {
       const vehicleData = {
         ...formData,
         plate: formData.plate.toUpperCase(),
+        km_start: parseInt(formData.km_start),
         photos: allPhotos
       };
 
