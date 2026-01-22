@@ -36,12 +36,14 @@ const Dashboard = () => {
     navigate('/login');
   };
 
-  const filteredVehicles = vehicles.filter(v => 
-    v.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    v.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    v.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    v.company.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredVehicles = vehicles
+    .filter(v => v.status === 'received') // Sadece teslimdeki araçlar
+    .filter(v => 
+      v.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.company.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   const receivedCount = vehicles.filter(v => v.status === 'received').length;
   const deliveredCount = vehicles.filter(v => v.status === 'delivered').length;
