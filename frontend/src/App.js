@@ -34,10 +34,10 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/receive" element={<PrivateRoute><VehicleReceive /></PrivateRoute>} />
+          <Route path="/" element={<PrivateRoute allowedRoles={['staff']}><Dashboard /></PrivateRoute>} />
+          <Route path="/receive" element={<PrivateRoute allowedRoles={['staff']}><VehicleReceive /></PrivateRoute>} />
           <Route path="/vehicle/:id" element={<PrivateRoute><VehicleDetail /></PrivateRoute>} />
-          <Route path="/customer" element={<PrivateRoute><CustomerPortal /></PrivateRoute>} />
+          <Route path="/customer" element={<PrivateRoute allowedRoles={['customer']}><CustomerPortal /></PrivateRoute>} />
         </Routes>
       </BrowserRouter>
       <Toaster position="top-center" />
