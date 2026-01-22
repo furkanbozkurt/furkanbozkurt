@@ -323,6 +323,58 @@ async def update_user_role(user_id: str, role: str, current_user: dict = Depends
     
     return {"message": "Kullanıcı yetkisi güncellendi"}
 
+# Admin: Approve user
+@api_router.put("/users/{user_id}/approve")
+async def approve_user(user_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler kullanıcı onaylayabilir")
+    
+    result = await db.users.update_one({"id": user_id}, {"$set": {"approved": True}})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    
+    return {"message": "Kullanıcı onaylandı"}
+
+# Companies endpoints
+@api_router.post("/companies", response_model=Company)
+async def create_company(company_data: CompanyCreate, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler firma ekleyebilir")
+    
+    # Check if company already exists
+    existing = await db.companies.find_one({"name": company_data.name}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Bu firma zaten mevcut")
+    
+    company_id = str(uuid.uuid4())
+    company_doc = {
+        "id": company_id,
+        "name": company_data.name,
+        "contact_person": company_data.contact_person or "",
+        "phone": company_data.phone or "",
+        "email": company_data.email or "",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.companies.insert_one(company_doc)
+    return Company(**company_doc)
+
+@api_router.get("/companies", response_model=List[Company])
+async def get_companies():
+    companies = await db.companies.find({}, {"_id": 0}).sort("name", 1).to_list(1000)
+    return [Company(**c) for c in companies]
+
+@api_router.delete("/companies/{company_id}")
+async def delete_company(company_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler firma silebilir")
+    
+    result = await db.companies.delete_one({"id": company_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Firma bulunamadı")
+    
+    return {"message": "Firma silindi"}
+
 # Vehicle endpoints
 @api_router.post("/vehicles", response_model=Vehicle)
 async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depends(get_current_user)):
