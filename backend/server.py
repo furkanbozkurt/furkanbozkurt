@@ -245,11 +245,19 @@ async def register(user_data: UserCreate):
         "password": hashed_pw,
         "name": user_data.name,
         "role": user_data.role,
-        "company_name": user_data.company_name or "",
+        "company_id": user_data.company_id,
+        "approved": user_data.role in ["admin", "taff_staff"],  # Auto-approve staff
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.users.insert_one(user_doc)
+    
+    # If company user, require approval
+    if user_data.role == "company":
+        raise HTTPException(
+            status_code=201,
+            detail="Kayıt başarılı! Hesabınız yönetici onayı bekliyor. Onaylandığında giriş yapabileceksiniz."
+        )
     
     access_token = create_access_token({"sub": user_id})
     user_response = User(
@@ -257,7 +265,8 @@ async def register(user_data: UserCreate):
         email=user_data.email,
         name=user_data.name,
         role=user_data.role,
-        company_name=user_doc["company_name"],
+        company_id=user_data.company_id,
+        approved=user_doc["approved"],
         created_at=user_doc["created_at"]
     )
     
