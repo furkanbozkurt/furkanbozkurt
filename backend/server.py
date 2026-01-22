@@ -283,7 +283,102 @@ async def deliver_vehicle(vehicle_id: str, deliver_data: VehicleDeliver, current
 
 @api_router.get("/")
 async def root():
-    return {"message": "ValetPro API"}
+    return {"message": "TAFF OTOPARK API"}
+
+# Fuel Records endpoints
+@api_router.post("/fuel-records", response_model=FuelRecord)
+async def create_fuel_record(fuel_data: FuelRecordCreate, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "staff":
+        raise HTTPException(status_code=403, detail="Sadece personel yakıt kaydı ekleyebilir")
+    
+    # Verify vehicle exists and is received
+    vehicle = await db.vehicles.find_one({"id": fuel_data.vehicle_id}, {"_id": 0})
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Araç bulunamadı")
+    
+    if vehicle["status"] != "received":
+        raise HTTPException(status_code=400, detail="Sadece teslimdeki araçlara yakıt eklenebilir")
+    
+    record_id = str(uuid.uuid4())
+    fuel_doc = {
+        "id": record_id,
+        "vehicle_id": fuel_data.vehicle_id,
+        "user_id": current_user["id"],
+        "user_name": current_user["name"],
+        "amount": fuel_data.amount,
+        "photos": fuel_data.photos,
+        "notes": fuel_data.notes or "",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.fuel_records.insert_one(fuel_doc)
+    return FuelRecord(**fuel_doc)
+
+@api_router.get("/fuel-records/vehicle/{vehicle_id}", response_model=List[FuelRecord])
+async def get_vehicle_fuel_records(vehicle_id: str, current_user: dict = Depends(get_current_user)):
+    fuel_records = await db.fuel_records.find(
+        {"vehicle_id": vehicle_id},
+        {"_id": 0}
+    ).to_list(1000)
+    return [FuelRecord(**r) for r in fuel_records]
+
+@api_router.get("/reports/user-summary")
+async def get_user_summary(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler raporları görüntüleyebilir")
+    
+    # Get all delivered vehicles
+    vehicles = await db.vehicles.find({"status": "delivered"}, {"_id": 0}).to_list(10000)
+    
+    # Group by user
+    user_stats = {}
+    for vehicle in vehicles:
+        user_id = vehicle["received_by"]
+        if user_id not in user_stats:
+            # Get user info
+            user = await db.users.find_one({"id": user_id}, {"_id": 0})
+            user_stats[user_id] = {
+                "user_id": user_id,
+                "user_name": user["name"] if user else "Bilinmeyen",
+                "total_vehicles": 0,
+                "total_km": 0,
+                "vehicles": []
+            }
+        
+        user_stats[user_id]["total_vehicles"] += 1
+        user_stats[user_id]["total_km"] += vehicle.get("total_km", 0)
+        
+        # Get fuel records for this vehicle
+        fuel_records = await db.fuel_records.find(
+            {"vehicle_id": vehicle["id"]},
+            {"_id": 0}
+        ).to_list(1000)
+        
+        total_fuel = sum(r["amount"] for r in fuel_records)
+        
+        user_stats[user_id]["vehicles"].append({
+            "plate": vehicle["plate"],
+            "brand": vehicle["brand"],
+            "model": vehicle["model"],
+            "km_start": vehicle.get("km_start", 0),
+            "km_end": vehicle.get("km_end", 0),
+            "total_km": vehicle.get("total_km", 0),
+            "total_fuel": total_fuel,
+            "fuel_count": len(fuel_records),
+            "received_at": vehicle["received_at"],
+            "delivered_at": vehicle["delivered_at"]
+        })
+    
+    # Get total fuel per user
+    for user_id in user_stats:
+        fuel_records = await db.fuel_records.find(
+            {"user_id": user_id},
+            {"_id": 0}
+        ).to_list(10000)
+        user_stats[user_id]["total_fuel"] = sum(r["amount"] for r in fuel_records)
+        user_stats[user_id]["fuel_count"] = len(fuel_records)
+    
+    return list(user_stats.values())
 
 # Include router
 app.include_router(api_router)
