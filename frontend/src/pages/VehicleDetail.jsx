@@ -292,6 +292,22 @@ const VehicleDetail = () => {
               </p>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="deliver-location">Teslim Etme Noktası *</Label>
+              <select
+                id="deliver-location"
+                value={deliverLocation}
+                onChange={(e) => setDeliverLocation(e.target.value)}
+                required
+                className="flex h-12 w-full rounded-sm border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                data-testid="deliver-location-select"
+              >
+                <option value="">Nokta Seçin</option>
+                {locations.map((location) => (
+                  <option key={location.id} value={location.name}>{location.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="deliver-notes">Teslim Notu (Opsiyonel)</Label>
               <Textarea
               id="deliver-notes"
