@@ -181,13 +181,93 @@ const AdminReports = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
+          <TabsList className="mb-6 flex-wrap">
+            <TabsTrigger value="vehicles">Araç Raporları</TabsTrigger>
             <TabsTrigger value="users">Kullanıcı Yönetimi</TabsTrigger>
             <TabsTrigger value="companies">Firma Yönetimi</TabsTrigger>
             <TabsTrigger value="reports">Kullanıcı Raporları</TabsTrigger>
             <TabsTrigger value="brands">Marka Yönetimi</TabsTrigger>
             <TabsTrigger value="locations">Lokasyon Yönetimi</TabsTrigger>
           </TabsList>
+
+          {/* Vehicles Tab - NEW */}
+          <TabsContent value="vehicles">
+            <Card className="border-slate-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Car className="h-5 w-5" />
+                  Tüm Araçlar ({vehicles.length})
+                </CardTitle>
+                <CardDescription>Araç plakasına tıklayarak detay ve süreç takibi yapabilirsiniz</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b-2 border-slate-200">
+                        <th className="text-left py-3 px-2">Plaka</th>
+                        <th className="text-left py-3 px-2">Marka/Model</th>
+                        <th className="text-left py-3 px-2">Firma</th>
+                        <th className="text-left py-3 px-2">Teslim Alan</th>
+                        <th className="text-left py-3 px-2">Durum</th>
+                        <th className="text-right py-3 px-2">KM</th>
+                        <th className="text-center py-3 px-2">İşlemler</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {vehicles.map((v) => (
+                        <tr key={v.id} className="border-b border-slate-100 hover:bg-slate-50">
+                          <td className="py-3 px-2">
+                            <button
+                              onClick={() => navigate(`/vehicle/${v.id}`)}
+                              className="font-mono font-bold text-primary hover:underline"
+                            >
+                              {v.plate}
+                            </button>
+                          </td>
+                          <td className="py-3 px-2">{v.brand} {v.model}</td>
+                          <td className="py-3 px-2">{v.company}</td>
+                          <td className="py-3 px-2">{v.received_by_name}</td>
+                          <td className="py-3 px-2">
+                            <Badge variant={v.status === 'received' ? 'default' : 'secondary'}
+                              className={v.status === 'received' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}>
+                              {v.status === 'received' ? 'Teslimdeki' : 'Teslim Edildi'}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-2 text-right">
+                            {v.km_start?.toLocaleString('tr-TR')}
+                            {v.km_end && ` → ${v.km_end?.toLocaleString('tr-TR')}`}
+                          </td>
+                          <td className="py-3 px-2 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => navigate(`/vehicle/${v.id}`)}
+                                title="Detay Görüntüle"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              {v.status === 'delivered' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => window.open(`/vehicle/${v.id}/final-report`, '_blank')}
+                                  title="Final Rapor"
+                                >
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Users Tab */}
           <TabsContent value="users">
