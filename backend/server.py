@@ -536,6 +536,27 @@ async def deliver_vehicle(vehicle_id: str, deliver_data: VehicleDeliver, current
     updated_vehicle = await db.vehicles.find_one({"id": vehicle_id}, {"_id": 0})
     return Vehicle(**updated_vehicle)
 
+# Admin: Delete vehicle
+@api_router.delete("/vehicles/{vehicle_id}")
+async def delete_vehicle(vehicle_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler araç silebilir")
+    
+    vehicle = await db.vehicles.find_one({"id": vehicle_id}, {"_id": 0})
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Araç bulunamadı")
+    
+    # Delete associated test drives and interim reports
+    await db.test_drives.delete_many({"vehicle_id": vehicle_id})
+    await db.interim_reports.delete_many({"vehicle_id": vehicle_id})
+    
+    # Delete the vehicle
+    result = await db.vehicles.delete_one({"id": vehicle_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=500, detail="Araç silinemedi")
+    
+    return {"message": "Araç ve ilişkili kayıtlar silindi"}
+
 @api_router.get("/")
 async def root():
     return {"message": "TAFF OTOPARK API"}
