@@ -131,7 +131,7 @@ const Dashboard = () => {
 
         {/* Vehicle List */}
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-900">Araçlar</h2>
+          <h2 className="text-xl font-bold text-slate-900">Teslimdeki Araçlar</h2>
           {loading ? (
             <div className="text-center py-12">
               <p className="text-slate-500">Yükleniyor...</p>
