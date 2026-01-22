@@ -36,11 +36,11 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<PrivateRoute allowedRoles={['staff']}><Dashboard /></PrivateRoute>} />
-          <Route path="/receive" element={<PrivateRoute allowedRoles={['staff']}><VehicleReceive /></PrivateRoute>} />
+          <Route path="/" element={<PrivateRoute allowedRoles={['admin', 'taff_staff']}><Dashboard /></PrivateRoute>} />
+          <Route path="/receive" element={<PrivateRoute allowedRoles={['admin', 'taff_staff']}><VehicleReceive /></PrivateRoute>} />
           <Route path="/vehicle/:id" element={<PrivateRoute><VehicleDetail /></PrivateRoute>} />
-          <Route path="/fuel/:vehicleId" element={<PrivateRoute allowedRoles={['staff']}><FuelAdd /></PrivateRoute>} />
-          <Route path="/customer" element={<PrivateRoute allowedRoles={['customer']}><CustomerPortal /></PrivateRoute>} />
+          <Route path="/fuel/:vehicleId" element={<PrivateRoute allowedRoles={['admin', 'taff_staff']}><FuelAdd /></PrivateRoute>} />
+          <Route path="/customer" element={<PrivateRoute allowedRoles={['company']}><CustomerPortal /></PrivateRoute>} />
           <Route path="/reports" element={<PrivateRoute allowedRoles={['admin']}><AdminReports /></PrivateRoute>} />
         </Routes>
       </BrowserRouter>
