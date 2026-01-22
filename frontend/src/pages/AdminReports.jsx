@@ -149,10 +149,64 @@ const AdminReports = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
+            <TabsTrigger value="users">Kullanıcı Yönetimi</TabsTrigger>
             <TabsTrigger value="reports">Kullanıcı Raporları</TabsTrigger>
             <TabsTrigger value="brands">Marka Yönetimi</TabsTrigger>
             <TabsTrigger value="locations">Lokasyon Yönetimi</TabsTrigger>
           </TabsList>
+
+          {/* Users Tab */}
+          <TabsContent value="users">
+            <Card className="border-slate-200">
+              <CardHeader>
+                <CardTitle>Tüm Kullanıcılar ({users.length})</CardTitle>
+                <CardDescription>Kullanıcı yetkileri sadece admin tarafından değiştirilebilir</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {users.map((user) => (
+                    <div key={user.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-sm">
+                      <div>
+                        <p className="font-semibold text-slate-900">{user.name}</p>
+                        <p className="text-sm text-slate-600">{user.email}</p>
+                        {user.company_name && (
+                          <p className="text-xs text-slate-500">Firma: {user.company_name}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <select
+                          value={user.role}
+                          onChange={async (e) => {
+                            try {
+                              await api.put(`/users/${user.id}/role?role=${e.target.value}`);
+                              toast.success('Yetki güncellendi');
+                              fetchData();
+                            } catch (error) {
+                              toast.error('Yetki güncellenemedi');
+                            }
+                          }}
+                          className="flex h-10 rounded-sm border border-input bg-background px-3 py-2 text-sm"
+                        >
+                          <option value="company">Firma</option>
+                          <option value="taff_staff">TAFF Personel</option>
+                          <option value="admin">Yönetici</option>
+                        </select>
+                        <Badge variant={
+                          user.role === 'admin' ? 'default' : 
+                          user.role === 'taff_staff' ? 'secondary' : 
+                          'outline'
+                        }>
+                          {user.role === 'admin' ? 'Admin' : 
+                           user.role === 'taff_staff' ? 'TAFF Personel' : 
+                           'Firma'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* User Reports Tab */}
           <TabsContent value="reports">
