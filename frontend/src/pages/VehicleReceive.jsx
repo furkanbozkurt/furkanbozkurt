@@ -165,15 +165,19 @@ const VehicleReceive = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="brand">Marka *</Label>
-                  <Input
+                  <select
                     id="brand"
-                    placeholder="BMW"
                     value={formData.brand}
                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                     required
-                    data-testid="brand-input"
-                    className="h-12"
-                  />
+                    className="flex h-12 w-full rounded-sm border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    data-testid="brand-select"
+                  >
+                    <option value="">Marka Seçin</option>
+                    {brands.map((brand) => (
+                      <option key={brand.id} value={brand.name}>{brand.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="model">Model *</Label>
