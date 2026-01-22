@@ -57,19 +57,29 @@ const Login = () => {
     setLoading(true);
     try {
       const response = await api.post('/auth/register', registerData);
-      localStorage.setItem('valetpro_token', response.data.access_token);
-      localStorage.setItem('valetpro_user', JSON.stringify(response.data.user));
-      toast.success('Kayıt başarılı!');
       
-      if (response.data.user.role === 'company') {
-        navigate('/customer');
-      } else if (response.data.user.role === 'admin') {
-        navigate('/reports');
+      // Company users will get 201 with message
+      if (registerData.role === 'company') {
+        toast.success('Kayıt başarılı! Hesabınız yönetici onayı bekliyor.');
+        navigate('/login');
       } else {
-        navigate('/');
+        localStorage.setItem('valetpro_token', response.data.access_token);
+        localStorage.setItem('valetpro_user', JSON.stringify(response.data.user));
+        toast.success('Kayıt başarılı!');
+        
+        if (response.data.user.role === 'admin') {
+          navigate('/reports');
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Kayıt başarısız');
+      if (error.response?.status === 201) {
+        toast.success(error.response.data.detail);
+        navigate('/login');
+      } else {
+        toast.error(error.response?.data?.detail || 'Kayıt başarısız');
+      }
     } finally {
       setLoading(false);
     }
