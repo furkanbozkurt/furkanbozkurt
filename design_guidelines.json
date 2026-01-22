@@ -1,0 +1,138 @@
+{
+  "brand_identity": {
+    "name": "ValetPro",
+    "archetype": "Swiss & High-Contrast (Industrial Precision)",
+    "emotional_tone": "Trust, Efficiency, Clarity, Professionalism",
+    "design_principles": [
+      "Fusion: Industrial Utility x Swiss Typography",
+      "Emotion: Confidence in Asset Safety",
+      "Content: Data-First, Visuals-Second",
+      "Zoom: High-fidelity details for vehicle inspection",
+      "Contrast: High visibility for outdoor usage"
+    ]
+  },
+  "typography": {
+    "headings": {
+      "family": "Chivo, sans-serif",
+      "weights": ["700", "900"],
+      "usage": "Page titles, Vehicle Plates, Key Metrics",
+      "letter_spacing": "tracking-tight"
+    },
+    "body": {
+      "family": "Inter, sans-serif",
+      "weights": ["400", "500"],
+      "usage": "Forms, Lists, Descriptions",
+      "letter_spacing": "tracking-normal"
+    },
+    "monospace": {
+      "family": "JetBrains Mono, monospace",
+      "usage": "License Plates, VIN numbers, Timestamps"
+    }
+  },
+  "colors": {
+    "palette_name": "Precision Industrial",
+    "mode": "light",
+    "primary": {
+      "name": "International Orange",
+      "hex": "#ea580c",
+      "usage": "Primary Actions (Submit, Park, Retrieve), Active States"
+    },
+    "secondary": {
+      "name": "Slate Blue",
+      "hex": "#475569",
+      "usage": "Secondary Actions, Icons, Borders"
+    },
+    "background": {
+      "default": "#ffffff",
+      "subtle": "#f8fafc",
+      "card": "#ffffff",
+      "dark_overlay": "#0f172a"
+    },
+    "text": {
+      "primary": "#0f172a",
+      "secondary": "#64748b",
+      "inverse": "#ffffff"
+    },
+    "status": {
+      "success": "#16a34a",
+      "warning": "#d97706",
+      "error": "#dc2626",
+      "info": "#2563eb"
+    }
+  },
+  "visual_enhancers": {
+    "radius": "rounded-none md:rounded-sm",
+    "shadows": "shadow-sm hover:shadow-md transition-shadow",
+    "borders": "border border-slate-200",
+    "glassmorphism": "backdrop-blur-md bg-white/80 border-b border-white/20",
+    "textures": "Subtle noise overlay on dashboard backgrounds for 'concrete' feel"
+  },
+  "layout_strategies": {
+    "mobile_valet": {
+      "type": "Stack",
+      "spacing": "space-y-4 p-4",
+      "navigation": "Bottom Tab Bar (Fixed)",
+      "form_style": "Full-width inputs, large touch targets (min 44px)"
+    },
+    "desktop_dashboard": {
+      "type": "Bento Grid",
+      "grid": "grid-cols-12 gap-6 p-8",
+      "sidebar": "Fixed Left Sidebar (w-64)",
+      "card_style": "Flat, bordered, no shadow (Swiss style)"
+    }
+  },
+  "components": {
+    "license_plate": {
+      "name": "LicensePlateDisplay",
+      "style": "bg-white border-2 border-black rounded-sm px-4 py-1 font-mono font-bold text-black shadow-sm inline-block",
+      "turkish_style": "Blue strip on left (TR)"
+    },
+    "vehicle_card": {
+      "name": "VehicleCard",
+      "structure": "Image (Top/Left) + Plate (Bold) + Status Badge + Timer",
+      "interaction": "Swipe actions on mobile, Hover reveal on desktop"
+    },
+    "photo_upload": {
+      "name": "InspectionUploader",
+      "style": "Grid of 5 aspect-ratio-square boxes. Dashed border when empty, Image cover when full.",
+      "icons": "Camera icon centered"
+    }
+  },
+  "image_urls": {
+    "login_hero": {
+      "url": "https://images.unsplash.com/photo-1572701190287-8666104be064?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Minimalist concrete parking structure for login background",
+      "category": "background"
+    },
+    "dashboard_hero": {
+      "url": "https://images.unsplash.com/photo-1763238273638-3264cf27298a?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Abstract light on concrete for dashboard header",
+      "category": "background"
+    },
+    "valet_profile": {
+      "url": "https://images.unsplash.com/photo-1602988087474-7e0c7766f5f9?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Professional valet attendant for profile placeholder",
+      "category": "avatar"
+    },
+    "car_placeholder": {
+      "url": "https://images.unsplash.com/photo-1752959810228-0715b7eaf0f2?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Luxury car detail for vehicle placeholder",
+      "category": "placeholder"
+    }
+  },
+  "instructions_to_main_agent": {
+    "general": "Build a high-contrast, industrial-clean app. Focus on the 'License Plate' as the primary identifier. Use Turkish labels for all UI elements (Giriş, Teslim Al, Teslim Et, Araçlar).",
+    "mobile_first": "The 'Receive' and 'Deliver' flows must be optimized for mobile. Use Drawer/Sheet components for forms on mobile.",
+    "forms": "Use Shadcn Form + React Hook Form. Validation is key (Plate format).",
+    "language": "HARD REQUIREMENT: UI must be in Turkish. Use 'Plaka' for Plate, 'Model' for Model, 'Notlar' for Notes.",
+    "theme_toggle": "Implement Light/Dark mode, but default to Light for high visibility."
+  },
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Do not use gradients for backgrounds, use solid colors or subtle noise.",
+    "Use 'sonner' for all toast notifications (Success: Araç teslim alındı).",
+    "All interactive elements must have `data-testid`.",
+    "Use `lucide-react` for icons.",
+    "Avoid 'Inter' for headings, use 'Chivo' or 'Work Sans'.",
+    "Buttons should be 'h-12' on mobile for touch accessibility."
+  ]
+}
