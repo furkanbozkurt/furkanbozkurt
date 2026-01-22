@@ -96,12 +96,17 @@ const Dashboard = () => {
               <p className="text-3xl font-black text-green-600" data-testid="received-vehicles">{receivedCount}</p>
             </CardContent>
           </Card>
-          <Card className="border-slate-200">
+          <Card 
+            className="border-slate-200 cursor-pointer hover:shadow-md hover:border-blue-300 transition-all"
+            onClick={() => navigate('/delivered')}
+            data-testid="delivered-vehicles-card"
+          >
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-500">Teslim Edilenler</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-500">Teslim Edilenler →</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-black text-blue-600" data-testid="delivered-vehicles">{deliveredCount}</p>
+              <p className="text-xs text-slate-400 mt-1">Tıklayarak listeleyin</p>
             </CardContent>
           </Card>
         </div>
