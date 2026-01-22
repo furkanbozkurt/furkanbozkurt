@@ -4,7 +4,7 @@
 Araç otopark yönetim sistemi. Araç check-in/check-out, test sürüşleri, yakıt takibi, fotoğraf yükleme ve raporlama özellikleri.
 
 ## User Personas
-- **Admin**: Tam yetki - kullanıcı yönetimi, firma/marka/lokasyon yönetimi, araç silme
+- **Admin**: Tam yetki - kullanıcı yönetimi, firma/marka/lokasyon yönetimi, araç silme, tüm raporları görme
 - **TAFF Staff**: Araç teslim alma/teslim etme, test sürüşü, ara rapor oluşturma
 - **Company (Firma)**: Sadece kendi firmalarının araçlarını görüntüleme
 
@@ -24,25 +24,24 @@ Araç otopark yönetim sistemi. Araç check-in/check-out, test sürüşleri, yak
 
 ## Implemented Features (22 Jan 2026)
 
-### Critical Bug Fixes
-- ✅ **P0**: Raporlar ve araç detayları açılmıyor sorunu **ÇÖZÜLDÜ**
-  - Sorun: PrivateRoute'daki varsayılan roller yanlış ayarlanmıştı (`staff`, `customer` yerine `admin`, `taff_staff`, `company` olmalıydı)
-  - Çözüm: App.js'de PrivateRoute default allowedRoles düzeltildi
+### Session 1 - Bug Fixes
+- ✅ **P0**: PrivateRoute roller düzeltildi (raporlar açılmıyor sorunu)
+- ✅ Dashboard'da received_by_name gösterimi
+- ✅ Admin araç silme yetkisi
 
-### New Features
-- ✅ Dashboard'da araç kartlarında kullanıcı adı (received_by_name) gösterimi
-- ✅ Admin için araç silme yetkisi ve butonu
-- ✅ Teslim edilen araçlarda düzenleme kilidi (admin hariç)
-- ✅ Vehicle model'e company ve received_by_name alanları eklendi
-
-### Backend Updates
-- Vehicle model: `received_by_name`, `company` alanları eklendi
-- `DELETE /api/vehicles/{id}` endpoint (admin only)
-- Test sürüşü/ara rapor: delivered araçlara sadece admin ekleyebilir kuralı
-
-### Test Results
-- Backend: 19/19 test başarılı (100%)
-- Frontend: Tüm özellikler çalışıyor (100%)
+### Session 2 - Admin Raporları İyileştirmesi
+- ✅ **Admin Panelinde "Araç Raporları" sekmesi** - Tüm araçlar tablo halinde
+  - Plaka, Marka/Model, Firma, Teslim Alan, Durum, KM bilgileri
+  - Plakaya tıklayınca araç detayına gitme
+  - Final Rapor butonuyla PDF görüntüleme
+- ✅ **Araç Detayında "Kullanım Özeti" bölümü**
+  - Test Sürüşü sayısı
+  - Farklı Kullanıcı sayısı
+  - Toplam Test KM
+  - Toplam Yakıt
+  - Kullanıcı bazlı detay tablosu
+- ✅ **Araç detayında "Teslim Alan" bilgisi**
+- ✅ **Final Rapor sayfası** - PDF olarak kaydetme özelliği
 
 ---
 
