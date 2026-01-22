@@ -66,7 +66,7 @@ class VehicleCreate(BaseModel):
     plate: str
     brand: str  # Brand name for now, will store as is
     model: str
-    company: str
+    company_id: str  # Firma ID (zorunlu)
     fuel_status: str
     notes: Optional[str] = ""
     photos: List[VehiclePhoto] = []
