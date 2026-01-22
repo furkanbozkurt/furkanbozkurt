@@ -37,7 +37,7 @@ class UserCreate(BaseModel):
     password: str
     name: str
     role: str = "company"  # admin, taff_staff (TAFF personel), company (firma)
-    company_name: Optional[str] = ""  # Firma adı
+    company_id: Optional[str] = None  # Firma ID
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -49,7 +49,8 @@ class User(BaseModel):
     email: str
     name: str
     role: str
-    company_name: str
+    company_id: Optional[str] = None
+    approved: bool = False  # Admin onayı
     created_at: str
 
 class Token(BaseModel):
