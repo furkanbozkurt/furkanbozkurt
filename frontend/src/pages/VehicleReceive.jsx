@@ -195,16 +195,20 @@ const VehicleReceive = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="company">Firma *</Label>
-                  <Input
-                    id="company"
-                    placeholder="ABC Şirket"
-                    value={formData.company}
-                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  <Label htmlFor="company_id">Firma *</Label>
+                  <select
+                    id="company_id"
+                    value={formData.company_id}
+                    onChange={(e) => setFormData({ ...formData, company_id: e.target.value })}
                     required
-                    data-testid="company-input"
-                    className="h-12"
-                  />
+                    className="flex h-12 w-full rounded-sm border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    data-testid="company-select"
+                  >
+                    <option value="">Firma Seçin</option>
+                    {companies.map((company) => (
+                      <option key={company.id} value={company.id}>{company.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="fuel_status">Yakıt Durumu *</Label>
