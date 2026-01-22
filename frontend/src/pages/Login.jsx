@@ -24,7 +24,7 @@ const Login = () => {
       localStorage.setItem('valetpro_user', JSON.stringify(response.data.user));
       toast.success('Giriş başarılı!');
       
-      if (response.data.user.role === 'customer') {
+      if (response.data.user.role === 'company') {
         navigate('/customer');
       } else if (response.data.user.role === 'admin') {
         navigate('/reports');
@@ -47,7 +47,7 @@ const Login = () => {
       localStorage.setItem('valetpro_user', JSON.stringify(response.data.user));
       toast.success('Kayıt başarılı!');
       
-      if (response.data.user.role === 'customer') {
+      if (response.data.user.role === 'company') {
         navigate('/customer');
       } else if (response.data.user.role === 'admin') {
         navigate('/reports');
