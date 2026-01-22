@@ -143,12 +143,28 @@ const VehicleDetail = () => {
                 <p className="text-sm text-slate-500">Tüm bilgiler ve fotoğraflar</p>
               </div>
             </div>
-            {user.role === 'staff' && vehicle.status === 'received' && (
-              <Button onClick={() => setShowDeliverDialog(true)} data-testid="deliver-btn">
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                Teslim Et
-              </Button>
-            )}
+            <div className="flex items-center gap-3">
+              {(user.role === 'admin' || user.role === 'taff_staff') && vehicle.status !== 'delivered' && (
+                <>
+                  <Button variant="outline" onClick={() => navigate(`/test-drive/${vehicle.id}`)}>
+                    Test Sürüşü
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate(`/interim-report/${vehicle.id}`)}>
+                    Ara Rapor
+                  </Button>
+                  <Button onClick={() => setShowDeliverDialog(true)} data-testid="deliver-btn">
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Teslim Et
+                  </Button>
+                </>
+              )}
+              {vehicle.status === 'delivered' && (
+                <Button onClick={() => window.open(`/vehicle/${vehicle.id}/final-report`, '_blank')}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Final Rapor
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </header>
