@@ -8,6 +8,8 @@ import VehicleDetail from '@/pages/VehicleDetail';
 import CustomerPortal from '@/pages/CustomerPortal';
 import FuelAdd from '@/pages/FuelAdd';
 import AdminReports from '@/pages/AdminReports';
+import TestDriveAdd from '@/pages/TestDriveAdd';
+import InterimReportAdd from '@/pages/InterimReportAdd';
 import '@/App.css';
 
 function PrivateRoute({ children, allowedRoles = ['staff', 'customer'] }) {
