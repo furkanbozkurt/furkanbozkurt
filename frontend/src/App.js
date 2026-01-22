@@ -47,6 +47,7 @@ function App() {
           <Route path="/test-drive/:vehicleId" element={<PrivateRoute allowedRoles={['admin', 'taff_staff']}><TestDriveAdd /></PrivateRoute>} />
           <Route path="/interim-report/:vehicleId" element={<PrivateRoute allowedRoles={['admin', 'taff_staff']}><InterimReportAdd /></PrivateRoute>} />
           <Route path="/vehicle/:id/final-report" element={<PrivateRoute><FinalReport /></PrivateRoute>} />
+          <Route path="/delivered" element={<PrivateRoute allowedRoles={['admin', 'taff_staff']}><DeliveredVehicles /></PrivateRoute>} />
           <Route path="/customer" element={<PrivateRoute allowedRoles={['company']}><CustomerPortal /></PrivateRoute>} />
           <Route path="/reports" element={<PrivateRoute allowedRoles={['admin']}><AdminReports /></PrivateRoute>} />
         </Routes>
