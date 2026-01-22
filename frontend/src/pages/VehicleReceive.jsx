@@ -43,14 +43,16 @@ const VehicleReceive = () => {
 
   const fetchBrandsAndLocations = async () => {
     try {
-      const [brandsRes, locationsRes] = await Promise.all([
+      const [brandsRes, locationsRes, companiesRes] = await Promise.all([
         api.get('/brands'),
-        api.get('/locations')
+        api.get('/locations'),
+        api.get('/companies')
       ]);
       setBrands(brandsRes.data);
       setLocations(locationsRes.data);
+      setCompanies(companiesRes.data);
     } catch (error) {
-      toast.error('Markalar ve lokasyonlar yüklenemedi');
+      toast.error('Veriler yüklenemedi');
     }
   };
 
