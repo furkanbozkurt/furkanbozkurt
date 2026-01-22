@@ -209,6 +209,19 @@ const VehicleReceive = () => {
                     className="h-12"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="km_start">Başlangıç KM *</Label>
+                  <Input
+                    id="km_start"
+                    type="number"
+                    placeholder="Örn: 45000"
+                    value={formData.km_start}
+                    onChange={(e) => setFormData({ ...formData, km_start: e.target.value })}
+                    required
+                    data-testid="km-start-input"
+                    className="h-12"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="notes">Notlar</Label>
