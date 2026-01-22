@@ -197,6 +197,10 @@ const FinalReport = () => {
                     <span className="text-slate-600">Tarih:</span>
                     <span className="font-medium">{new Date(vehicle.received_at).toLocaleString('tr-TR')}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Teslim Alan:</span>
+                    <span className="font-medium">{vehicle.received_by_name || 'Bilinmeyen'}</span>
+                  </div>
                 </div>
               </div>
               {vehicle.delivered_at && (
@@ -221,6 +225,49 @@ const FinalReport = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Photos Section */}
+        {vehicle.photos && vehicle.photos.length > 0 && (
+          <Card className="border-slate-200 mb-6 print:shadow-none print:break-inside-avoid">
+            <CardHeader className="bg-slate-50">
+              <CardTitle className="flex items-center gap-2">
+                <Camera className="h-5 w-5" />
+                Araç Fotoğrafları
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {vehicle.photos.map((photo, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="aspect-square bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
+                      {photo.data && photo.data.startsWith('data:image') ? (
+                        <img
+                          src={photo.data}
+                          alt={photoLabels[photo.category] || photo.category}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Image className="h-8 w-8 text-slate-300" />
+                        </div>
+                      )}
+                      <div className="w-full h-full items-center justify-center hidden">
+                        <Image className="h-8 w-8 text-slate-300" />
+                      </div>
+                    </div>
+                    <p className="text-xs text-center font-medium text-slate-600">
+                      {photoLabels[photo.category] || photo.category}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Test Drives */}
         {test_drives.length > 0 && (
