@@ -36,7 +36,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     name: str
-    role: str = "staff"  # staff, customer, or admin
+    role: str = "taff_staff"  # admin, taff_staff (TAFF personel), company (firma)
 
 class UserLogin(BaseModel):
     email: EmailStr
