@@ -279,6 +279,13 @@ async def deliver_vehicle(vehicle_id: str, deliver_data: VehicleDeliver, current
     if vehicle["status"] == "delivered":
         raise HTTPException(status_code=400, detail="Bu araç zaten teslim edilmiş")
     
+    # Validate km_end is greater than km_start
+    if deliver_data.km_end <= vehicle["km_start"]:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Bitiş KM ({deliver_data.km_end}) başlangıç KM'den ({vehicle['km_start']}) büyük olmalıdır"
+        )
+    
     total_km = deliver_data.km_end - vehicle["km_start"]
     
     update_data = {
