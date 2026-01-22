@@ -334,6 +334,80 @@ async def deliver_vehicle(vehicle_id: str, deliver_data: VehicleDeliver, current
 async def root():
     return {"message": "TAFF OTOPARK API"}
 
+# Brands endpoints
+@api_router.post("/brands", response_model=Brand)
+async def create_brand(brand_data: BrandCreate, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler marka ekleyebilir")
+    
+    # Check if brand already exists
+    existing = await db.brands.find_one({"name": brand_data.name}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Bu marka zaten mevcut")
+    
+    brand_id = str(uuid.uuid4())
+    brand_doc = {
+        "id": brand_id,
+        "name": brand_data.name,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.brands.insert_one(brand_doc)
+    return Brand(**brand_doc)
+
+@api_router.get("/brands", response_model=List[Brand])
+async def get_brands():
+    brands = await db.brands.find({}, {"_id": 0}).sort("name", 1).to_list(1000)
+    return [Brand(**b) for b in brands]
+
+@api_router.delete("/brands/{brand_id}")
+async def delete_brand(brand_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler marka silebilir")
+    
+    result = await db.brands.delete_one({"id": brand_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Marka bulunamadı")
+    
+    return {"message": "Marka silindi"}
+
+# Locations endpoints
+@api_router.post("/locations", response_model=Location)
+async def create_location(location_data: LocationCreate, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler lokasyon ekleyebilir")
+    
+    # Check if location already exists
+    existing = await db.locations.find_one({"name": location_data.name}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Bu lokasyon zaten mevcut")
+    
+    location_id = str(uuid.uuid4())
+    location_doc = {
+        "id": location_id,
+        "name": location_data.name,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.locations.insert_one(location_doc)
+    return Location(**location_doc)
+
+@api_router.get("/locations", response_model=List[Location])
+async def get_locations():
+    locations = await db.locations.find({}, {"_id": 0}).sort("name", 1).to_list(1000)
+    return [Location(**l) for l in locations]
+
+@api_router.delete("/locations/{location_id}")
+async def delete_location(location_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler lokasyon silebilir")
+    
+    result = await db.locations.delete_one({"id": location_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Lokasyon bulunamadı")
+    
+    return {"message": "Lokasyon silindi"}
+
 # Fuel Records endpoints
 @api_router.post("/fuel-records", response_model=FuelRecord)
 async def create_fuel_record(fuel_data: FuelRecordCreate, current_user: dict = Depends(get_current_user)):
