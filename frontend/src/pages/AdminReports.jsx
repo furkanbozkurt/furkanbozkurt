@@ -18,8 +18,10 @@ const AdminReports = () => {
   const [userReports, setUserReports] = useState([]);
   const [brands, setBrands] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [newBrand, setNewBrand] = useState('');
   const [newLocation, setNewLocation] = useState('');
+  const [newCompany, setNewCompany] = useState({ name: '', contact_person: '', phone: '', email: '' });
   const [loading, setLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem('valetpro_user') || '{}');
 
