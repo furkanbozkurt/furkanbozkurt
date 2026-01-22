@@ -454,13 +454,21 @@ async def get_vehicles(current_user: dict = Depends(get_current_user)):
         # TAFF staff and admin see all vehicles
         vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
     
-    # Add user names
+    # Add user names and company names
     for vehicle in vehicles:
+        # Add received_by_name
         if vehicle.get("received_by"):
             user = await db.users.find_one({"id": vehicle["received_by"]}, {"_id": 0, "name": 1})
             vehicle["received_by_name"] = user["name"] if user else "Bilinmeyen"
         else:
             vehicle["received_by_name"] = "Bilinmeyen"
+        
+        # Add company name
+        if vehicle.get("company_id"):
+            company = await db.companies.find_one({"id": vehicle["company_id"]}, {"_id": 0, "name": 1})
+            vehicle["company"] = company["name"] if company else "Bilinmeyen"
+        else:
+            vehicle["company"] = "Bilinmeyen"
     
     return [Vehicle(**v) for v in vehicles]
 
@@ -473,6 +481,20 @@ async def get_vehicle(vehicle_id: str, current_user: dict = Depends(get_current_
     # Check authorization
     if current_user["role"] == "customer" and vehicle.get("customer_email") != current_user["email"]:
         raise HTTPException(status_code=403, detail="Bu aracı görüntüleme yetkiniz yok")
+    
+    # Add received_by_name
+    if vehicle.get("received_by"):
+        user = await db.users.find_one({"id": vehicle["received_by"]}, {"_id": 0, "name": 1})
+        vehicle["received_by_name"] = user["name"] if user else "Bilinmeyen"
+    else:
+        vehicle["received_by_name"] = "Bilinmeyen"
+    
+    # Add company name
+    if vehicle.get("company_id"):
+        company = await db.companies.find_one({"id": vehicle["company_id"]}, {"_id": 0, "name": 1})
+        vehicle["company"] = company["name"] if company else "Bilinmeyen"
+    else:
+        vehicle["company"] = "Bilinmeyen"
     
     return Vehicle(**vehicle)
 
