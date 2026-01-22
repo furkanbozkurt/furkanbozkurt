@@ -313,7 +313,8 @@ async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depen
         "receive_location": vehicle_data.receive_location,
         "deliver_location": None,
         "test_drive_count": 0,
-        "total_fuel_added": 0
+        "total_fuel_added": 0,
+        "company_name": vehicle_data.company  # Firma adı
     }
     
     await db.vehicles.insert_one(vehicle_doc)
