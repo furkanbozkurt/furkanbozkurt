@@ -172,20 +172,32 @@ const VehicleDetail = () => {
             <CardDescription>Teslim alınma sırasında çekilen fotoğraflar</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {vehicle.photos.map((photo, index) => (
-                <div key={index} className="space-y-2">
-                  <p className="text-sm font-medium text-slate-700">{photoLabels[photo.category] || photo.category}</p>
-                  <div className="aspect-square rounded-sm overflow-hidden border border-slate-200">
-                    <img 
-                      src={photo.url} 
-                      alt={photoLabels[photo.category]} 
-                      className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                      data-testid={`photo-${photo.category}`}
-                    />
+            <div className="space-y-6">
+              {photoCategories.map((categoryDef) => {
+                const categoryPhotos = vehicle.photos.filter(p => p.category === categoryDef.id);
+                if (categoryPhotos.length === 0) return null;
+                
+                return (
+                  <div key={categoryDef.id} className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-semibold text-slate-900">{photoLabels[categoryDef.id]}</h3>
+                      <Badge variant="outline">{categoryPhotos.length} fotoğraf</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {categoryPhotos.map((photo, index) => (
+                        <div key={index} className="aspect-square rounded-sm overflow-hidden border border-slate-200 group">
+                          <img 
+                            src={photo.url} 
+                            alt={`${photoLabels[photo.category]} ${index + 1}`}
+                            className="w-full h-full object-cover hover:scale-110 transition-transform cursor-pointer"
+                            data-testid={`photo-${photo.category}-${index}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
