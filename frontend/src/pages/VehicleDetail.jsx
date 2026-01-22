@@ -149,6 +149,31 @@ const VehicleDetail = () => {
                 </div>
               </div>
               <div className="flex items-start gap-3">
+                <Package className="h-5 w-5 text-slate-400 mt-0.5" />
+                <div>
+                  <p className="text-xs text-slate-500">Başlangıç KM</p>
+                  <p className="text-base font-medium text-slate-900" data-testid="vehicle-km-start">{vehicle.km_start?.toLocaleString('tr-TR')} km</p>
+                </div>
+              </div>
+              {vehicle.km_end && (
+                <>
+                  <div className="flex items-start gap-3">
+                    <Package className="h-5 w-5 text-slate-400 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-slate-500">Bitiş KM</p>
+                      <p className="text-base font-medium text-slate-900" data-testid="vehicle-km-end">{vehicle.km_end?.toLocaleString('tr-TR')} km</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Package className="h-5 w-5 text-slate-400 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-slate-500">Toplam KM</p>
+                      <p className="text-base font-bold text-primary" data-testid="vehicle-total-km">{vehicle.total_km?.toLocaleString('tr-TR')} km</p>
+                    </div>
+                  </div>
+                </>
+              )}
+              <div className="flex items-start gap-3">
                 <Calendar className="h-5 w-5 text-slate-400 mt-0.5" />
                 <div>
                   <p className="text-xs text-slate-500">Teslim Alınma</p>
