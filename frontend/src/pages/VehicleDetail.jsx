@@ -35,11 +35,14 @@ const VehicleDetail = () => {
   const [showDeliverDialog, setShowDeliverDialog] = useState(false);
   const [deliverNotes, setDeliverNotes] = useState('');
   const [deliverKm, setDeliverKm] = useState('');
+  const [deliverLocation, setDeliverLocation] = useState('');
+  const [locations, setLocations] = useState([]);
   const [delivering, setDelivering] = useState(false);
   const user = JSON.parse(localStorage.getItem('valetpro_user') || '{}');
 
   useEffect(() => {
     fetchVehicle();
+    fetchLocations();
   }, [id]);
 
   const fetchVehicle = async () => {
@@ -54,9 +57,23 @@ const VehicleDetail = () => {
     }
   };
 
+  const fetchLocations = async () => {
+    try {
+      const response = await api.get('/locations');
+      setLocations(response.data);
+    } catch (error) {
+      console.error('Lokasyonlar yüklenemedi');
+    }
+  };
+
   const handleDeliver = async () => {
     if (!deliverKm || parseInt(deliverKm) <= vehicle.km_start) {
       toast.error('Bitiş KM başlangıç KM\'den büyük olmalıdır');
+      return;
+    }
+
+    if (!deliverLocation) {
+      toast.error('Lütfen teslim etme noktasını seçin');
       return;
     }
     
@@ -64,7 +81,8 @@ const VehicleDetail = () => {
     try {
       await api.put(`/vehicles/${id}/deliver`, { 
         notes: deliverNotes,
-        km_end: parseInt(deliverKm)
+        km_end: parseInt(deliverKm),
+        deliver_location: deliverLocation
       });
       toast.success('Araç başarıyla teslim edildi!');
       setShowDeliverDialog(false);
