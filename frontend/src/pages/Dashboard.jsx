@@ -162,6 +162,9 @@ const Dashboard = () => {
                       <p className="text-lg font-bold text-slate-900">{vehicle.brand} {vehicle.model}</p>
                       <p className="text-sm text-slate-600">{vehicle.company}</p>
                       <div className="flex items-center gap-2 text-xs text-slate-500 pt-2 border-t border-slate-100">
+                        <User className="h-3 w-3" />
+                        <span>{vehicle.received_by_name || 'Bilinmeyen'}</span>
+                        <span className="mx-1">•</span>
                         <Clock className="h-3 w-3" />
                         <span>{new Date(vehicle.received_at).toLocaleString('tr-TR')}</span>
                       </div>
