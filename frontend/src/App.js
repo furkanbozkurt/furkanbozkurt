@@ -8,9 +8,24 @@ import VehicleDetail from '@/pages/VehicleDetail';
 import CustomerPortal from '@/pages/CustomerPortal';
 import '@/App.css';
 
-function PrivateRoute({ children }) {
+function PrivateRoute({ children, allowedRoles = ['staff', 'customer'] }) {
   const token = localStorage.getItem('valetpro_token');
-  return token ? children : <Navigate to="/login" />;
+  const user = JSON.parse(localStorage.getItem('valetpro_user') || '{}');
+  
+  if (!token) {
+    return <Navigate to="/login" />;
+  }
+  
+  if (!allowedRoles.includes(user.role)) {
+    // Redirect based on user role
+    if (user.role === 'customer') {
+      return <Navigate to="/customer" />;
+    } else {
+      return <Navigate to="/" />;
+    }
+  }
+  
+  return children;
 }
 
 function App() {
