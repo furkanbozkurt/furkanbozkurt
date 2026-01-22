@@ -28,7 +28,8 @@ const VehicleReceive = () => {
     company: '',
     fuel_status: '',
     notes: '',
-    customer_email: ''
+    customer_email: '',
+    km_start: ''
   });
   const [photos, setPhotos] = useState({});
 
