@@ -9,25 +9,13 @@ import { toast } from 'sonner';
 import api from '@/lib/api';
 import { Car, KeyRound } from 'lucide-react';
 
+const COMPANY_ROLES = ['company_manager', 'company_staff'];
+
 const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [registerData, setRegisterData] = useState({ email: '', password: '', name: '', role: 'company', company_id: '' });
-  const [companies, setCompanies] = useState([]);
-
-  React.useEffect(() => {
-    fetchCompanies();
-  }, []);
-
-  const fetchCompanies = async () => {
-    try {
-      const response = await api.get('/companies');
-      setCompanies(response.data);
-    } catch (error) {
-      console.error('Firmalar yüklenemedi');
-    }
-  };
+  const [registerData, setRegisterData] = useState({ email: '', password: '', name: '' });
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -38,9 +26,11 @@ const Login = () => {
       localStorage.setItem('valetpro_user', JSON.stringify(response.data.user));
       toast.success('Giriş başarılı!');
       
-      if (response.data.user.role === 'company') {
+      // Redirect based on role
+      const role = response.data.user.role;
+      if (COMPANY_ROLES.includes(role)) {
         navigate('/customer');
-      } else if (response.data.user.role === 'admin') {
+      } else if (role === 'admin' || role === 'taff_manager') {
         navigate('/reports');
       } else {
         navigate('/');
