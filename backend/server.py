@@ -587,20 +587,21 @@ async def delete_company(company_id: str, current_user: dict = Depends(get_curre
 # Vehicle endpoints
 @api_router.post("/vehicles", response_model=Vehicle)
 async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] not in ["admin", "taff_staff"]:
+    if current_user["role"] not in TAFF_ROLES:
         raise HTTPException(status_code=403, detail="Sadece TAFF personeli araç teslim alabilir")
     
-    # Check if user has an active vehicle (not delivered)
-    active_vehicle = await db.vehicles.find_one({
-        "received_by": current_user["id"],
-        "status": {"$ne": "delivered"}
-    }, {"_id": 0})
-    
-    if active_vehicle:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Aktif bir aracınız var ({active_vehicle['plate']}). Önce onu otopark pozisyonuna teslim etmelisiniz."
-        )
+    # Check if user has an active vehicle (not delivered) - only for taff_staff
+    if current_user["role"] == "taff_staff":
+        active_vehicle = await db.vehicles.find_one({
+            "received_by": current_user["id"],
+            "status": {"$nin": ["delivered", "in_pool"]}
+        }, {"_id": 0})
+        
+        if active_vehicle:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Aktif bir aracınız var ({active_vehicle['plate']}). Önce onu otopark pozisyonuna teslim etmelisiniz."
+            )
     
     # Check if this plate has previous records and validate KM
     previous_vehicles = await db.vehicles.find(
@@ -610,7 +611,7 @@ async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depen
     
     if previous_vehicles:
         last_vehicle = previous_vehicles[0]
-        last_km = last_vehicle.get("km_end") or last_vehicle.get("km_start", 0)
+        last_km = last_vehicle.get("km_end") or last_vehicle.get("current_km") or last_vehicle.get("km_start", 0)
         
         if vehicle_data.km_start <= last_km:
             raise HTTPException(
@@ -628,7 +629,7 @@ async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depen
         "fuel_status": vehicle_data.fuel_status,
         "notes": vehicle_data.notes or "",
         "photos": [p.model_dump() for p in vehicle_data.photos],
-        "status": "received",
+        "status": "received",  # received -> in_pool -> in_testing -> pending_approval -> delivered
         "received_at": datetime.now(timezone.utc).isoformat(),
         "received_by": current_user["id"],
         "delivered_at": None,
@@ -636,11 +637,17 @@ async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depen
         "customer_email": vehicle_data.customer_email,
         "km_start": vehicle_data.km_start,
         "km_end": None,
+        "current_km": vehicle_data.km_start,  # Mevcut km
         "total_km": None,
+        "estimated_test_km": vehicle_data.estimated_test_km,  # Tahmini test km
+        "remaining_test_km": vehicle_data.estimated_test_km,  # Kalan test km
         "receive_location": vehicle_data.receive_location,
         "deliver_location": None,
         "test_drive_count": 0,
-        "total_fuel_added": 0
+        "total_fuel_added": 0,
+        "is_approved": False,
+        "early_delivery_reason": None,
+        "early_delivery_photos": []
     }
     
     await db.vehicles.insert_one(vehicle_doc)
@@ -648,20 +655,33 @@ async def create_vehicle(vehicle_data: VehicleCreate, current_user: dict = Depen
 
 @api_router.get("/vehicles", response_model=List[Vehicle])
 async def get_vehicles(current_user: dict = Depends(get_current_user)):
-    if current_user["role"] == "company":
-        # Company users only see vehicles from their company
+    # TAFF roles see all vehicles
+    if current_user["role"] in TAFF_ROLES:
+        vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
+    # Company manager sees all approved vehicles from their company
+    elif current_user["role"] == "company_manager":
         company_id = current_user.get("company_id")
         if not company_id:
             return []
         vehicles = await db.vehicles.find(
-            {"company_id": company_id},
+            {"company_id": company_id, "is_approved": True},
+            {"_id": 0}
+        ).to_list(1000)
+    # Company staff sees only approved vehicles from their department (via company_id for now)
+    elif current_user["role"] == "company_staff":
+        company_id = current_user.get("company_id")
+        department_id = current_user.get("department_id")
+        if not company_id:
+            return []
+        # For now, filter by company + approved (department filtering can be added based on vehicle's service type)
+        vehicles = await db.vehicles.find(
+            {"company_id": company_id, "is_approved": True},
             {"_id": 0}
         ).to_list(1000)
     else:
-        # TAFF staff and admin see all vehicles
-        vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
+        vehicles = []
     
-    # Add user names and company names
+    # Add user names and company names, calculate remaining km
     for vehicle in vehicles:
         # Add received_by_name
         if vehicle.get("received_by"):
@@ -676,6 +696,11 @@ async def get_vehicles(current_user: dict = Depends(get_current_user)):
             vehicle["company"] = company["name"] if company else "Bilinmeyen"
         else:
             vehicle["company"] = "Bilinmeyen"
+        
+        # Calculate remaining test km
+        if vehicle.get("estimated_test_km") and vehicle.get("current_km"):
+            driven_km = vehicle["current_km"] - vehicle["km_start"]
+            vehicle["remaining_test_km"] = max(0, vehicle["estimated_test_km"] - driven_km)
     
     return [Vehicle(**v) for v in vehicles]
 
