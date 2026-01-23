@@ -110,6 +110,14 @@ const VehicleReceive = () => {
       return;
     }
 
+    // Calculate estimated test km
+    let estimatedKm = null;
+    if (estimatedKmType === 'custom' && customEstimatedKm) {
+      estimatedKm = parseInt(customEstimatedKm);
+    } else if (estimatedKmType && estimatedKmType !== 'custom') {
+      estimatedKm = parseInt(estimatedKmType);
+    }
+
     setLoading(true);
     try {
       // Flatten all photos with their categories
@@ -125,6 +133,7 @@ const VehicleReceive = () => {
         ...formData,
         plate: formData.plate.toUpperCase(),
         km_start: parseInt(formData.km_start),
+        estimated_test_km: estimatedKm,
         photos: allPhotos
       };
 
