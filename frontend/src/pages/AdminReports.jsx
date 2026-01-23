@@ -9,7 +9,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import api from '@/lib/api';
-import { LogOut, Car, PlusCircle, Trash2, MapPin, Settings, Eye, FileText } from 'lucide-react';
+import { LogOut, Car, PlusCircle, Trash2, MapPin, Settings, Eye, FileText, Edit, Building2, Users } from 'lucide-react';
+
+const ADMIN_ROLES = ['admin', 'taff_manager'];
+const VALID_ROLES = [
+  { value: 'admin', label: 'Admin' },
+  { value: 'taff_manager', label: 'TAFF Yönetici' },
+  { value: 'taff_staff', label: 'TAFF Personel' },
+  { value: 'company_manager', label: 'Firma Yönetici' },
+  { value: 'company_staff', label: 'Firma Personel' }
+];
 
 const AdminReports = () => {
   const navigate = useNavigate();
@@ -20,14 +29,18 @@ const AdminReports = () => {
   const [brands, setBrands] = useState([]);
   const [locations, setLocations] = useState([]);
   const [companies, setCompanies] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [newBrand, setNewBrand] = useState('');
   const [newLocation, setNewLocation] = useState('');
   const [newCompany, setNewCompany] = useState({ name: '', contact_person: '', phone: '', email: '' });
+  const [newDepartment, setNewDepartment] = useState({ name: '', company_id: '' });
   const [loading, setLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editUserData, setEditUserData] = useState({ role: '', company_id: '', department_id: '' });
   const user = JSON.parse(localStorage.getItem('valetpro_user') || '{}');
 
   useEffect(() => {
-    if (user.role !== 'admin') {
+    if (!ADMIN_ROLES.includes(user.role)) {
       toast.error('Bu sayfaya erişim yetkiniz yok');
       navigate('/');
       return;
@@ -37,13 +50,14 @@ const AdminReports = () => {
 
   const fetchData = async () => {
     try {
-      const [reportsRes, brandsRes, locationsRes, usersRes, companiesRes, vehiclesRes] = await Promise.all([
+      const [reportsRes, brandsRes, locationsRes, usersRes, companiesRes, vehiclesRes, deptsRes] = await Promise.all([
         api.get('/reports/user-summary'),
         api.get('/brands'),
         api.get('/locations'),
         api.get('/users'),
         api.get('/companies'),
-        api.get('/vehicles')
+        api.get('/vehicles'),
+        api.get('/departments')
       ]);
       setUserReports(reportsRes.data);
       setBrands(brandsRes.data);
@@ -51,10 +65,78 @@ const AdminReports = () => {
       setUsers(usersRes.data);
       setCompanies(companiesRes.data);
       setVehicles(vehiclesRes.data);
+      setDepartments(deptsRes.data);
     } catch (error) {
       toast.error('Veriler yüklenemedi');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEditUser = (u) => {
+    setEditingUser(u);
+    setEditUserData({
+      role: u.role,
+      company_id: u.company_id || '',
+      department_id: u.department_id || ''
+    });
+  };
+
+  const handleSaveUser = async () => {
+    try {
+      // Update role
+      await api.put(`/users/${editingUser.id}/role?role=${editUserData.role}`);
+      
+      // Update company and department
+      await api.put(`/users/${editingUser.id}/company`, {
+        company_id: editUserData.company_id || null,
+        department_id: editUserData.department_id || null
+      });
+      
+      toast.success('Kullanıcı güncellendi');
+      setEditingUser(null);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Güncelleme başarısız');
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) return;
+    
+    try {
+      await api.delete(`/users/${userId}`);
+      toast.success('Kullanıcı silindi');
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Silme başarısız');
+    }
+  };
+
+  const handleAddDepartment = async (e) => {
+    e.preventDefault();
+    if (!newDepartment.name.trim() || !newDepartment.company_id) {
+      toast.error('Departman adı ve firma seçimi gerekli');
+      return;
+    }
+    
+    try {
+      await api.post('/departments', newDepartment);
+      toast.success('Departman eklendi');
+      setNewDepartment({ name: '', company_id: '' });
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Departman eklenemedi');
+    }
+  };
+
+  const handleDeleteDepartment = async (deptId) => {
+    try {
+      await api.delete(`/departments/${deptId}`);
+      toast.success('Departman silindi');
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Silme başarısız');
     }
   };
 
