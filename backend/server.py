@@ -1034,16 +1034,31 @@ async def create_test_drive(test_data: TestDriveCreate, current_user: dict = Dep
         "notes": test_data.notes or "",
         "photos": test_data.photos,
         "fuel_added": test_data.fuel_added,
+        "defect_found": test_data.defect_found,
+        "defect_description": test_data.defect_description,
+        "defect_photos": test_data.defect_photos,
+        "defect_videos": test_data.defect_videos,
+        "return_to_pool": test_data.return_to_pool,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.test_drives.insert_one(test_doc)
     
+    # Calculate remaining test km
+    estimated_km = vehicle.get("estimated_test_km") or 0
+    driven_total = test_data.km_end - vehicle["km_start"]
+    remaining_km = max(0, estimated_km - driven_total)
+    
     # Update vehicle status and counters
+    new_status = "in_pool" if test_data.return_to_pool else "in_testing"
     await db.vehicles.update_one(
         {"id": test_data.vehicle_id},
         {
-            "$set": {"status": "in_testing"},
+            "$set": {
+                "status": new_status,
+                "current_km": test_data.km_end,
+                "remaining_test_km": remaining_km
+            },
             "$inc": {
                 "test_drive_count": 1,
                 "total_fuel_added": test_data.fuel_added
@@ -1055,12 +1070,17 @@ async def create_test_drive(test_data: TestDriveCreate, current_user: dict = Dep
 
 @api_router.get("/test-drives/vehicle/{vehicle_id}", response_model=List[TestDrive])
 async def get_vehicle_test_drives(vehicle_id: str, current_user: dict = Depends(get_current_user)):
-    # Only admin and taff_staff can see test drives
-    if current_user["role"] not in ["admin", "taff_staff"]:
+    # Only TAFF can see test drives (ara rapor)
+    if current_user["role"] not in TAFF_ROLES:
         raise HTTPException(status_code=403, detail="Bu bilgilere erişim yetkiniz yok")
     
+    # taff_staff can only see their own test drives
+    query = {"vehicle_id": vehicle_id}
+    if current_user["role"] == "taff_staff":
+        query["user_id"] = current_user["id"]
+    
     test_drives = await db.test_drives.find(
-        {"vehicle_id": vehicle_id},
+        query,
         {"_id": 0}
     ).sort("created_at", 1).to_list(1000)
     
@@ -1069,7 +1089,7 @@ async def get_vehicle_test_drives(vehicle_id: str, current_user: dict = Depends(
 # Interim Reports endpoints
 @api_router.post("/interim-reports", response_model=InterimReport)
 async def create_interim_report(report_data: InterimReportCreate, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] not in ["admin", "taff_staff"]:
+    if current_user["role"] not in TAFF_ROLES:
         raise HTTPException(status_code=403, detail="Sadece TAFF personeli ara rapor oluşturabilir")
     
     vehicle = await db.vehicles.find_one({"id": report_data.vehicle_id}, {"_id": 0})
@@ -1077,7 +1097,7 @@ async def create_interim_report(report_data: InterimReportCreate, current_user: 
         raise HTTPException(status_code=404, detail="Araç bulunamadı")
     
     # Check if vehicle is delivered (only admin can add to delivered vehicles)
-    if vehicle["status"] == "delivered" and current_user["role"] != "admin":
+    if vehicle["status"] in ["delivered", "pending_approval"] and current_user["role"] not in ADMIN_ROLES:
         raise HTTPException(status_code=400, detail="Teslim edilmiş araçlara sadece yöneticiler rapor ekleyebilir")
     
     report_id = str(uuid.uuid4())
@@ -1097,7 +1117,7 @@ async def create_interim_report(report_data: InterimReportCreate, current_user: 
 
 @api_router.get("/interim-reports/vehicle/{vehicle_id}", response_model=List[InterimReport])
 async def get_vehicle_interim_reports(vehicle_id: str, current_user: dict = Depends(get_current_user)):
-    # Only admin and taff_staff can see interim reports
+    # Only TAFF can see interim reports
     if current_user["role"] not in ["admin", "taff_staff"]:
         raise HTTPException(status_code=403, detail="Bu bilgilere erişim yetkiniz yok")
     
