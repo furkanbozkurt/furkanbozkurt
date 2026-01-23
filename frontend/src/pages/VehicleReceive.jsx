@@ -265,6 +265,46 @@ const VehicleReceive = () => {
                     ))}
                   </select>
                 </div>
+                
+                {/* Tahmini Test KM */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="flex items-center gap-2">
+                    <Gauge className="h-4 w-4" />
+                    Tahmini Test KM
+                  </Label>
+                  <div className="flex gap-4">
+                    <select
+                      value={estimatedKmType}
+                      onChange={(e) => {
+                        setEstimatedKmType(e.target.value);
+                        if (e.target.value !== 'custom') {
+                          setCustomEstimatedKm('');
+                        }
+                      }}
+                      className="flex h-12 w-full rounded-sm border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      data-testid="estimated-km-select"
+                    >
+                      <option value="">KM Seçin (Opsiyonel)</option>
+                      {estimatedKmOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                    {estimatedKmType === 'custom' && (
+                      <Input
+                        type="number"
+                        placeholder="Manuel KM girin"
+                        value={customEstimatedKm}
+                        onChange={(e) => setCustomEstimatedKm(e.target.value)}
+                        className="h-12"
+                        data-testid="custom-km-input"
+                      />
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Araç teslim edilirken bu KM tamamlanmamışsa açıklama istenecektir
+                  </p>
+                </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="customer_email">Müşteri E-posta (Opsiyonel)</Label>
                   <Input
