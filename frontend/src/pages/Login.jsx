@@ -146,22 +146,6 @@ const Login = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="register-company">Firma *</Label>
-                    <select
-                      id="register-company"
-                      value={registerData.company_id}
-                      onChange={(e) => setRegisterData({ ...registerData, company_id: e.target.value })}
-                      required
-                      className="flex h-12 w-full rounded-sm border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      data-testid="register-company-select"
-                    >
-                      <option value="">Firma Seçin</option>
-                      {companies.map((comp) => (
-                        <option key={comp.id} value={comp.id}>{comp.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
                     <Label htmlFor="register-email">E-posta</Label>
                     <Input
                       id="register-email"
@@ -186,6 +170,10 @@ const Login = () => {
                       data-testid="register-password-input"
                       className="h-12"
                     />
+                  </div>
+                  <div className="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg">
+                    <p>Kayıt sonrası hesabınız yönetici onayı bekleyecektir.</p>
+                    <p>Yönetici size rol ve firma atayacaktır.</p>
                   </div>
                   <Button type="submit" className="w-full h-12" disabled={loading} data-testid="register-submit-btn">
                     {loading ? 'Kayıt yapılıyor...' : 'Kayıt Ol'}
