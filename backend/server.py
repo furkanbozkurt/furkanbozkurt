@@ -710,9 +710,13 @@ async def get_vehicle(vehicle_id: str, current_user: dict = Depends(get_current_
     if not vehicle:
         raise HTTPException(status_code=404, detail="Araç bulunamadı")
     
-    # Check authorization
-    if current_user["role"] == "customer" and vehicle.get("customer_email") != current_user["email"]:
-        raise HTTPException(status_code=403, detail="Bu aracı görüntüleme yetkiniz yok")
+    # Check authorization for company users
+    if current_user["role"] in COMPANY_ROLES:
+        # Company users can only see approved vehicles from their company
+        if vehicle.get("company_id") != current_user.get("company_id"):
+            raise HTTPException(status_code=403, detail="Bu aracı görüntüleme yetkiniz yok")
+        if not vehicle.get("is_approved", False):
+            raise HTTPException(status_code=403, detail="Bu rapor henüz onaylanmamış")
     
     # Add received_by_name
     if vehicle.get("received_by"):
@@ -728,11 +732,61 @@ async def get_vehicle(vehicle_id: str, current_user: dict = Depends(get_current_
     else:
         vehicle["company"] = "Bilinmeyen"
     
+    # Calculate remaining test km
+    if vehicle.get("estimated_test_km") and vehicle.get("current_km"):
+        driven_km = vehicle["current_km"] - vehicle["km_start"]
+        vehicle["remaining_test_km"] = max(0, vehicle["estimated_test_km"] - driven_km)
+    
     return Vehicle(**vehicle)
+
+# Return vehicle to pool (havuza döndür)
+@api_router.put("/vehicles/{vehicle_id}/return-to-pool")
+async def return_vehicle_to_pool(vehicle_id: str, km_current: int, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] not in TAFF_ROLES:
+        raise HTTPException(status_code=403, detail="Sadece TAFF personeli araç havuza döndürebilir")
+    
+    vehicle = await db.vehicles.find_one({"id": vehicle_id}, {"_id": 0})
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Araç bulunamadı")
+    
+    # Calculate remaining km
+    driven_km = km_current - vehicle["km_start"]
+    remaining_km = (vehicle.get("estimated_test_km") or 0) - driven_km
+    
+    await db.vehicles.update_one(
+        {"id": vehicle_id},
+        {"$set": {
+            "status": "in_pool",
+            "current_km": km_current,
+            "remaining_test_km": max(0, remaining_km)
+        }}
+    )
+    
+    return {"message": "Araç havuza döndürüldü", "remaining_km": max(0, remaining_km)}
+
+# Admin: Approve vehicle report
+@api_router.put("/vehicles/{vehicle_id}/approve")
+async def approve_vehicle_report(vehicle_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] not in ADMIN_ROLES:
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler rapor onaylayabilir")
+    
+    vehicle = await db.vehicles.find_one({"id": vehicle_id}, {"_id": 0})
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Araç bulunamadı")
+    
+    if vehicle["status"] != "pending_approval":
+        raise HTTPException(status_code=400, detail="Bu araç onay bekliyor durumunda değil")
+    
+    await db.vehicles.update_one(
+        {"id": vehicle_id},
+        {"$set": {"is_approved": True, "status": "delivered"}}
+    )
+    
+    return {"message": "Rapor onaylandı ve firma kullanıcılarına açıldı"}
 
 @api_router.put("/vehicles/{vehicle_id}/deliver", response_model=Vehicle)
 async def deliver_vehicle(vehicle_id: str, deliver_data: VehicleDeliver, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] not in ["admin", "taff_staff"]:
+    if current_user["role"] not in TAFF_ROLES:
         raise HTTPException(status_code=403, detail="Sadece personel araç teslim edebilir")
     
     vehicle = await db.vehicles.find_one({"id": vehicle_id}, {"_id": 0})
@@ -743,21 +797,36 @@ async def deliver_vehicle(vehicle_id: str, deliver_data: VehicleDeliver, current
         raise HTTPException(status_code=400, detail="Bu araç zaten teslim edilmiş")
     
     # Validate km_end is greater than km_start
-    if deliver_data.km_end <= vehicle["km_start"]:
+    current_km = vehicle.get("current_km") or vehicle["km_start"]
+    if deliver_data.km_end < current_km:
         raise HTTPException(
             status_code=400, 
-            detail=f"Bitiş KM ({deliver_data.km_end}) başlangıç KM'den ({vehicle['km_start']}) büyük olmalıdır"
+            detail=f"Bitiş KM ({deliver_data.km_end}) mevcut KM'den ({current_km}) büyük veya eşit olmalıdır"
         )
+    
+    # Check if test km completed or need explanation
+    estimated_km = vehicle.get("estimated_test_km") or 0
+    driven_km = deliver_data.km_end - vehicle["km_start"]
+    
+    if estimated_km > 0 and driven_km < estimated_km:
+        # Early delivery - need explanation
+        if not deliver_data.early_delivery_reason:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Tahmini test KM ({estimated_km}) tamamlanmadan teslim için açıklama gerekli. Yapılan: {driven_km} km"
+            )
     
     total_km = deliver_data.km_end - vehicle["km_start"]
     
     update_data = {
-        "status": "delivered",
+        "status": "pending_approval",  # Admin onayı bekliyor
         "delivered_at": datetime.now(timezone.utc).isoformat(),
         "delivered_by": current_user["id"],
         "km_end": deliver_data.km_end,
+        "current_km": deliver_data.km_end,
         "total_km": total_km,
-        "deliver_location": deliver_data.deliver_location
+        "deliver_location": deliver_data.deliver_location,
+        "remaining_test_km": max(0, estimated_km - driven_km)
     }
     
     if deliver_data.notes:
