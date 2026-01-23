@@ -38,15 +38,10 @@ const TestDriveAdd = () => {
       const veh = vehicleRes.data;
       setVehicle(veh);
       
-      // Get last KM from test drives or vehicle km_start
-      if (testDrivesRes.data.length > 0) {
-        const last = testDrivesRes.data[testDrivesRes.data.length - 1];
-        setLastKm(last.km_end);
-        setFormData(prev => ({ ...prev, km_start: last.km_end.toString() }));
-      } else {
-        setLastKm(veh.km_start);
-        setFormData(prev => ({ ...prev, km_start: veh.km_start.toString() }));
-      }
+      // Get current KM from vehicle (backend calculates this)
+      const currentKm = veh.current_km || veh.km_start;
+      setLastKm(currentKm);
+      setFormData(prev => ({ ...prev, km_start: currentKm.toString() }));
     } catch (error) {
       toast.error('Araç bilgisi yüklenemedi');
       navigate('/');
