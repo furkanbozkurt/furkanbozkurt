@@ -5,8 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import api from '@/lib/api';
-import { Plus, Car, LogOut, User, Clock, Search } from 'lucide-react';
+import { Plus, Car, LogOut, User, Clock, Search, Settings, Gauge } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+
+const ADMIN_ROLES = ['admin', 'taff_manager'];
+const TAFF_ROLES = ['admin', 'taff_manager', 'taff_staff'];
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -36,17 +39,41 @@ const Dashboard = () => {
     navigate('/login');
   };
 
+  // Filter only active vehicles (received, in_pool, in_testing)
   const filteredVehicles = vehicles
-    .filter(v => v.status === 'received') // Sadece teslimdeki araçlar
+    .filter(v => ['received', 'in_pool', 'in_testing'].includes(v.status))
     .filter(v => 
       v.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.company.toLowerCase().includes(searchTerm.toLowerCase())
+      (v.company || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-  const receivedCount = vehicles.filter(v => v.status === 'received').length;
+  const receivedCount = vehicles.filter(v => ['received', 'in_pool', 'in_testing'].includes(v.status)).length;
   const deliveredCount = vehicles.filter(v => v.status === 'delivered').length;
+  const pendingApprovalCount = vehicles.filter(v => v.status === 'pending_approval').length;
+
+  const getRoleName = (role) => {
+    const roleNames = {
+      'admin': 'Admin',
+      'taff_manager': 'TAFF Yönetici',
+      'taff_staff': 'TAFF Personel',
+      'company_manager': 'Firma Yönetici',
+      'company_staff': 'Firma Personel'
+    };
+    return roleNames[role] || role;
+  };
+
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      'received': { label: 'Teslimdeki', class: 'bg-green-100 text-green-700' },
+      'in_pool': { label: 'Havuzda', class: 'bg-blue-100 text-blue-700' },
+      'in_testing': { label: 'Test Sürüşünde', class: 'bg-yellow-100 text-yellow-700' },
+      'pending_approval': { label: 'Onay Bekliyor', class: 'bg-orange-100 text-orange-700' },
+      'delivered': { label: 'Teslim Edildi', class: 'bg-slate-100 text-slate-700' }
+    };
+    return statusConfig[status] || { label: status, class: 'bg-slate-100 text-slate-700' };
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -64,9 +91,19 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {ADMIN_ROLES.includes(user.role) && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/reports')}
+                  data-testid="admin-panel-btn"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  Yönetim Paneli
+                </Button>
+              )}
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-slate-900" data-testid="user-name">{user.name}</p>
-                <p className="text-xs text-slate-500">Personel</p>
+                <p className="text-xs text-slate-500">{getRoleName(user.role)}</p>
               </div>
               <Button variant="outline" size="icon" onClick={handleLogout} data-testid="logout-btn">
                 <LogOut className="h-4 w-4" />
@@ -79,7 +116,7 @@ const Dashboard = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
           <Card className="border-slate-200">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-slate-500">Toplam Araç</CardTitle>
@@ -90,12 +127,26 @@ const Dashboard = () => {
           </Card>
           <Card className="border-slate-200">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-slate-500">Teslimdeki Araçlar</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-500">Aktif Araçlar</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-black text-green-600" data-testid="received-vehicles">{receivedCount}</p>
             </CardContent>
           </Card>
+          {ADMIN_ROLES.includes(user.role) && pendingApprovalCount > 0 && (
+            <Card 
+              className="border-orange-200 bg-orange-50 cursor-pointer hover:shadow-md transition-all"
+              onClick={() => navigate('/pending-approvals')}
+              data-testid="pending-approvals-card"
+            >
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-orange-600">Onay Bekleyen →</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-black text-orange-600">{pendingApprovalCount}</p>
+              </CardContent>
+            </Card>
+          )}
           <Card 
             className="border-slate-200 cursor-pointer hover:shadow-md hover:border-blue-300 transition-all"
             onClick={() => navigate('/delivered')}
