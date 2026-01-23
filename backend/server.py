@@ -140,8 +140,12 @@ class Vehicle(BaseModel):
 
 class VehicleDeliver(BaseModel):
     notes: Optional[str] = ""
-    km_end: int  # Ending kilometer
-    deliver_location: str  # Teslim etme noktası
+    km_end: int
+    deliver_location: str
+    early_delivery_reason: Optional[str] = None  # KM tamamlanmadan teslim açıklaması
+    early_delivery_photos: List[str] = []  # Erken teslim fotoğrafları
+    defect_notes: Optional[str] = None  # Arıza notları (ara rapordan)
+    include_defects: bool = True  # Arızaları final rapora ekle
 
 class FuelRecordCreate(BaseModel):
     vehicle_id: str
