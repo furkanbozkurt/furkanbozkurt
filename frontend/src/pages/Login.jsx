@@ -46,27 +46,16 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await api.post('/auth/register', registerData);
+      // All new registrations go to pending approval
+      const response = await api.post('/auth/register', {
+        ...registerData,
+        role: 'company_staff'  // Default role, admin will change
+      });
       
-      // Company users will get 201 with message
-      if (registerData.role === 'company') {
-        toast.success('Kayıt başarılı! Hesabınız yönetici onayı bekliyor.');
-        navigate('/login');
-      } else {
-        localStorage.setItem('valetpro_token', response.data.access_token);
-        localStorage.setItem('valetpro_user', JSON.stringify(response.data.user));
-        toast.success('Kayıt başarılı!');
-        
-        if (response.data.user.role === 'admin') {
-          navigate('/reports');
-        } else {
-          navigate('/');
-        }
-      }
+      toast.success('Kayıt başarılı! Hesabınız yönetici onayı bekliyor.');
     } catch (error) {
       if (error.response?.status === 201) {
-        toast.success(error.response.data.detail);
-        navigate('/login');
+        toast.success(error.response.data.detail || 'Kayıt başarılı! Hesabınız yönetici onayı bekliyor.');
       } else {
         toast.error(error.response?.data?.detail || 'Kayıt başarısız');
       }
