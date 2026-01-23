@@ -1074,10 +1074,9 @@ async def get_vehicle_test_drives(vehicle_id: str, current_user: dict = Depends(
     if current_user["role"] not in TAFF_ROLES:
         raise HTTPException(status_code=403, detail="Bu bilgilere erişim yetkiniz yok")
     
-    # taff_staff can only see their own test drives
+    # All TAFF roles can see all test drives for the vehicle
+    # This enables collaboration among TAFF staff
     query = {"vehicle_id": vehicle_id}
-    if current_user["role"] == "taff_staff":
-        query["user_id"] = current_user["id"]
     
     test_drives = await db.test_drives.find(
         query,
