@@ -271,9 +271,13 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         if user is None:
             raise HTTPException(status_code=401, detail="Kullanıcı bulunamadı")
         
-        # Ensure backward compatibility for existing users without company_name
+        # Ensure backward compatibility
         if "company_name" not in user:
             user["company_name"] = ""
+        if "department_id" not in user:
+            user["department_id"] = None
+        if "department_name" not in user:
+            user["department_name"] = None
             
         return user
     except jwt.ExpiredSignatureError:
@@ -289,6 +293,10 @@ async def register(user_data: UserCreate):
     if existing_user:
         raise HTTPException(status_code=400, detail="Bu email zaten kullanımda")
     
+    # Validate role
+    if user_data.role not in VALID_ROLES:
+        raise HTTPException(status_code=400, detail=f"Geçersiz rol. Geçerli roller: {', '.join(VALID_ROLES)}")
+    
     user_id = str(uuid.uuid4())
     hashed_pw = hash_password(user_data.password)
     
@@ -299,14 +307,15 @@ async def register(user_data: UserCreate):
         "name": user_data.name,
         "role": user_data.role,
         "company_id": user_data.company_id,
-        "approved": user_data.role in ["admin", "taff_staff"],  # Auto-approve staff
+        "department_id": user_data.department_id,
+        "approved": user_data.role in TAFF_ROLES,  # Auto-approve TAFF users
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.users.insert_one(user_doc)
     
     # If company user, require approval
-    if user_data.role == "company":
+    if user_data.role in COMPANY_ROLES:
         raise HTTPException(
             status_code=201,
             detail="Kayıt başarılı! Hesabınız yönetici onayı bekliyor. Onaylandığında giriş yapabileceksiniz."
@@ -319,6 +328,7 @@ async def register(user_data: UserCreate):
         name=user_data.name,
         role=user_data.role,
         company_id=user_data.company_id,
+        department_id=user_data.department_id,
         approved=user_doc["approved"],
         created_at=user_doc["created_at"]
     )
@@ -331,9 +341,19 @@ async def login(credentials: UserLogin):
     if not user or not verify_password(credentials.password, user["password"]):
         raise HTTPException(status_code=401, detail="Email veya şifre hatalı")
     
-    # Check if user is approved (except for admin and taff_staff)
-    if user.get("role") == "company" and not user.get("approved", False):
+    # Check if user is approved (except for TAFF roles)
+    if user.get("role") in COMPANY_ROLES and not user.get("approved", False):
         raise HTTPException(status_code=403, detail="Hesabınız henüz onaylanmamış. Lütfen yöneticiyle iletişime geçin.")
+    
+    # Get company and department names
+    company_name = ""
+    department_name = ""
+    if user.get("company_id"):
+        company = await db.companies.find_one({"id": user["company_id"]}, {"_id": 0, "name": 1})
+        company_name = company["name"] if company else ""
+    if user.get("department_id"):
+        department = await db.departments.find_one({"id": user["department_id"]}, {"_id": 0, "name": 1})
+        department_name = department["name"] if department else ""
     
     access_token = create_access_token({"sub": user["id"]})
     user_response = User(
