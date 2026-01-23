@@ -196,7 +196,9 @@ const Dashboard = () => {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredVehicles.map((vehicle) => (
+              {filteredVehicles.map((vehicle) => {
+                const statusBadge = getStatusBadge(vehicle.status);
+                return (
                 <Card 
                   key={vehicle.id} 
                   className="border-slate-200 hover:shadow-md transition-shadow cursor-pointer group"
@@ -210,15 +212,37 @@ const Dashboard = () => {
                       </div>
                       <Badge 
                         variant="default"
-                        className="bg-green-100 text-green-700 hover:bg-green-100"
+                        className={statusBadge.class}
                         data-testid={`vehicle-status-${vehicle.plate}`}
                       >
-                        Teslimdeki
+                        {statusBadge.label}
                       </Badge>
                     </div>
                     <div className="space-y-2">
                       <p className="text-lg font-bold text-slate-900">{vehicle.brand} {vehicle.model}</p>
                       <p className="text-sm text-slate-600">{vehicle.company}</p>
+                      
+                      {/* Kalan KM gösterimi - sadece TAFF için */}
+                      {TAFF_ROLES.includes(user.role) && vehicle.estimated_test_km && (
+                        <div className="flex items-center gap-2 py-2 px-3 bg-slate-50 rounded-lg">
+                          <Gauge className="h-4 w-4 text-primary" />
+                          <div className="flex-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-slate-600">Kalan Test KM:</span>
+                              <span className={`font-bold ${(vehicle.remaining_test_km || 0) <= 50 ? 'text-red-600' : 'text-primary'}`}>
+                                {(vehicle.remaining_test_km || 0).toLocaleString('tr-TR')} km
+                              </span>
+                            </div>
+                            <div className="w-full bg-slate-200 rounded-full h-1.5 mt-1">
+                              <div 
+                                className={`h-1.5 rounded-full ${(vehicle.remaining_test_km || 0) <= 50 ? 'bg-red-500' : 'bg-primary'}`}
+                                style={{ width: `${Math.min(100, ((vehicle.remaining_test_km || 0) / vehicle.estimated_test_km) * 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="flex items-center gap-2 text-xs text-slate-500 pt-2 border-t border-slate-100">
                         <User className="h-3 w-3" />
                         <span>{vehicle.received_by_name || 'Bilinmeyen'}</span>
@@ -229,7 +253,7 @@ const Dashboard = () => {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              )})}
             </div>
           )}
         </div>
