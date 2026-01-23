@@ -203,7 +203,12 @@ class TestDriveCreate(BaseModel):
     km_end: int
     notes: Optional[str] = ""
     photos: List[str] = []
-    fuel_added: int = 0  # Yakıt tutarı
+    fuel_added: int = 0
+    defect_found: bool = False  # Arıza bulundu mu?
+    defect_description: Optional[str] = None  # Arıza açıklaması
+    defect_photos: List[str] = []  # Arıza fotoğrafları
+    defect_videos: List[str] = []  # Arıza videoları (base64 veya URL)
+    return_to_pool: bool = True  # Araç havuza dönsün mü?
 
 class TestDrive(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -217,6 +222,11 @@ class TestDrive(BaseModel):
     notes: str
     photos: List[str]
     fuel_added: int
+    defect_found: bool = False
+    defect_description: Optional[str] = None
+    defect_photos: List[str] = []
+    defect_videos: List[str] = []
+    return_to_pool: bool = True
     created_at: str
 
 class InterimReportCreate(BaseModel):
