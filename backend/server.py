@@ -1118,7 +1118,7 @@ async def create_interim_report(report_data: InterimReportCreate, current_user: 
 @api_router.get("/interim-reports/vehicle/{vehicle_id}", response_model=List[InterimReport])
 async def get_vehicle_interim_reports(vehicle_id: str, current_user: dict = Depends(get_current_user)):
     # Only TAFF can see interim reports
-    if current_user["role"] not in ["admin", "taff_staff"]:
+    if current_user["role"] not in TAFF_ROLES:
         raise HTTPException(status_code=403, detail="Bu bilgilere erişim yetkiniz yok")
     
     reports = await db.interim_reports.find(
@@ -1135,11 +1135,51 @@ async def get_final_report(vehicle_id: str, current_user: dict = Depends(get_cur
     if not vehicle:
         raise HTTPException(status_code=404, detail="Araç bulunamadı")
     
-    # Get all related data
+    # Company users can only see approved reports
+    if current_user["role"] in COMPANY_ROLES:
+        if vehicle.get("company_id") != current_user.get("company_id"):
+            raise HTTPException(status_code=403, detail="Bu rapora erişim yetkiniz yok")
+        if not vehicle.get("is_approved", False):
+            raise HTTPException(status_code=403, detail="Bu rapor henüz onaylanmamış")
+    
+    # Add company name and received_by_name
+    if vehicle.get("company_id"):
+        company = await db.companies.find_one({"id": vehicle["company_id"]}, {"_id": 0, "name": 1})
+        vehicle["company"] = company["name"] if company else "Bilinmeyen"
+    if vehicle.get("received_by"):
+        user = await db.users.find_one({"id": vehicle["received_by"]}, {"_id": 0, "name": 1})
+        vehicle["received_by_name"] = user["name"] if user else "Bilinmeyen"
+    
+    # Get test drives - for company users, only show defect summary
     test_drives = await db.test_drives.find(
         {"vehicle_id": vehicle_id},
         {"_id": 0}
     ).sort("created_at", 1).to_list(1000)
+    
+    # For company users, filter out detailed test drive info
+    if current_user["role"] in COMPANY_ROLES:
+        # Only show defects for company users
+        defects = [
+            {
+                "defect_description": td.get("defect_description"),
+                "defect_photos": td.get("defect_photos", []),
+                "created_at": td.get("created_at")
+            }
+            for td in test_drives if td.get("defect_found")
+        ]
+        test_drives_for_report = []
+    else:
+        defects = [
+            {
+                "defect_description": td.get("defect_description"),
+                "defect_photos": td.get("defect_photos", []),
+                "defect_videos": td.get("defect_videos", []),
+                "user_name": td.get("user_name"),
+                "created_at": td.get("created_at")
+            }
+            for td in test_drives if td.get("defect_found")
+        ]
+        test_drives_for_report = test_drives
     
     fuel_records = await db.fuel_records.find(
         {"vehicle_id": vehicle_id},
@@ -1152,15 +1192,18 @@ async def get_final_report(vehicle_id: str, current_user: dict = Depends(get_cur
     
     return {
         "vehicle": vehicle,
-        "test_drives": test_drives,
-        "fuel_records": fuel_records,
+        "test_drives": test_drives_for_report if current_user["role"] in TAFF_ROLES else [],
+        "fuel_records": fuel_records if current_user["role"] in TAFF_ROLES else [],
+        "defects": defects,  # Arıza bilgileri
         "summary": {
             "total_test_drives": len(test_drives),
             "total_test_km": total_test_km,
             "total_fuel_spent": total_fuel,
             "initial_km": vehicle["km_start"],
             "final_km": vehicle.get("km_end"),
-            "total_km": vehicle.get("total_km", 0)
+            "total_km": vehicle.get("total_km", 0),
+            "estimated_test_km": vehicle.get("estimated_test_km"),
+            "early_delivery_reason": vehicle.get("early_delivery_reason")
         }
     }
 
