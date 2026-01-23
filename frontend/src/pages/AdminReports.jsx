@@ -297,7 +297,17 @@ const AdminReports = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {vehicles.map((v) => (
+                      {vehicles.map((v) => {
+                        const statusConfig = {
+                          'received': { label: 'Teslimdeki', class: 'bg-green-100 text-green-700' },
+                          'in_pool': { label: 'Havuzda', class: 'bg-blue-100 text-blue-700' },
+                          'in_testing': { label: 'Test Sürüşünde', class: 'bg-yellow-100 text-yellow-700' },
+                          'pending_approval': { label: 'Onay Bekliyor', class: 'bg-orange-100 text-orange-700' },
+                          'delivered': { label: 'Teslim Edildi', class: 'bg-slate-100 text-slate-700' }
+                        };
+                        const status = statusConfig[v.status] || { label: v.status, class: 'bg-slate-100' };
+                        
+                        return (
                         <tr key={v.id} className="border-b border-slate-100 hover:bg-slate-50">
                           <td className="py-3 px-2">
                             <button
@@ -311,10 +321,7 @@ const AdminReports = () => {
                           <td className="py-3 px-2">{v.company}</td>
                           <td className="py-3 px-2">{v.received_by_name}</td>
                           <td className="py-3 px-2">
-                            <Badge variant={v.status === 'received' ? 'default' : 'secondary'}
-                              className={v.status === 'received' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}>
-                              {v.status === 'received' ? 'Teslimdeki' : 'Teslim Edildi'}
-                            </Badge>
+                            <Badge className={status.class}>{status.label}</Badge>
                           </td>
                           <td className="py-3 px-2 text-right">
                             {v.km_start?.toLocaleString('tr-TR')}
@@ -330,7 +337,7 @@ const AdminReports = () => {
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              {v.status === 'delivered' && (
+                              {(v.status === 'delivered' || v.status === 'pending_approval') && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
