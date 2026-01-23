@@ -36,9 +36,11 @@ const VehicleDetail = () => {
   const [loading, setLoading] = useState(true);
   const [showDeliverDialog, setShowDeliverDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEarlyDeliveryWarning, setShowEarlyDeliveryWarning] = useState(false);
   const [deliverNotes, setDeliverNotes] = useState('');
   const [deliverKm, setDeliverKm] = useState('');
   const [deliverLocation, setDeliverLocation] = useState('');
+  const [earlyDeliveryReason, setEarlyDeliveryReason] = useState('');
   const [locations, setLocations] = useState([]);
   const [delivering, setDelivering] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -92,6 +94,19 @@ const VehicleDetail = () => {
     }
   };
 
+  const checkEarlyDelivery = () => {
+    const kmEnd = parseInt(deliverKm);
+    const estimatedKm = vehicle.estimated_test_km || 0;
+    const drivenKm = kmEnd - vehicle.km_start;
+    
+    // Eğer tahmini KM var ve yapılan KM yetersizse uyarı göster
+    if (estimatedKm > 0 && drivenKm < estimatedKm) {
+      setShowEarlyDeliveryWarning(true);
+      return true;
+    }
+    return false;
+  };
+
   const handleDeliver = async () => {
     if (!deliverKm || parseInt(deliverKm) <= vehicle.km_start) {
       toast.error('Bitiş KM başlangıç KM\'den büyük olmalıdır');
@@ -102,16 +117,32 @@ const VehicleDetail = () => {
       toast.error('Lütfen teslim etme noktasını seçin');
       return;
     }
+
+    // Erken teslim kontrolü - uyarı henüz gösterilmediyse
+    if (!showEarlyDeliveryWarning && checkEarlyDelivery()) {
+      return;
+    }
+
+    // Erken teslimde açıklama zorunlu
+    const estimatedKm = vehicle.estimated_test_km || 0;
+    const drivenKm = parseInt(deliverKm) - vehicle.km_start;
+    if (estimatedKm > 0 && drivenKm < estimatedKm && !earlyDeliveryReason.trim()) {
+      toast.error('Erken teslim için açıklama yazmanız zorunludur');
+      return;
+    }
     
     setDelivering(true);
     try {
       await api.put(`/vehicles/${id}/deliver`, { 
         notes: deliverNotes,
         km_end: parseInt(deliverKm),
-        deliver_location: deliverLocation
+        deliver_location: deliverLocation,
+        early_delivery_reason: earlyDeliveryReason.trim() || null
       });
-      toast.success('Araç başarıyla teslim edildi!');
+      toast.success('Araç başarıyla teslim edildi! Yönetici onayı bekleniyor.');
       setShowDeliverDialog(false);
+      setShowEarlyDeliveryWarning(false);
+      setEarlyDeliveryReason('');
       fetchVehicle();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Araç teslim edilemedi');
