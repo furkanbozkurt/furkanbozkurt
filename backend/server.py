@@ -532,7 +532,7 @@ async def delete_department(dept_id: str, current_user: dict = Depends(get_curre
 # Companies endpoints
 @api_router.post("/companies", response_model=Company)
 async def create_company(company_data: CompanyCreate, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ADMIN_ROLES:
         raise HTTPException(status_code=403, detail="Sadece yöneticiler firma ekleyebilir")
     
     # Check if company already exists
@@ -551,6 +551,18 @@ async def create_company(company_data: CompanyCreate, current_user: dict = Depen
     }
     
     await db.companies.insert_one(company_doc)
+    
+    # Create default departments
+    default_departments = ["Hasar", "Mekanik", "Lastik Yönetimi"]
+    for dept_name in default_departments:
+        dept_doc = {
+            "id": str(uuid.uuid4()),
+            "name": dept_name,
+            "company_id": company_id,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.departments.insert_one(dept_doc)
+    
     return Company(**company_doc)
 
 @api_router.get("/companies", response_model=List[Company])
@@ -560,14 +572,17 @@ async def get_companies():
 
 @api_router.delete("/companies/{company_id}")
 async def delete_company(company_id: str, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ADMIN_ROLES:
         raise HTTPException(status_code=403, detail="Sadece yöneticiler firma silebilir")
+    
+    # Delete company's departments too
+    await db.departments.delete_many({"company_id": company_id})
     
     result = await db.companies.delete_one({"id": company_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Firma bulunamadı")
     
-    return {"message": "Firma silindi"}
+    return {"message": "Firma ve departmanları silindi"}
 
 # Vehicle endpoints
 @api_router.post("/vehicles", response_model=Vehicle)
