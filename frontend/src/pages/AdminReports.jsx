@@ -350,7 +350,7 @@ const AdminReports = () => {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                      )})}
                     </tbody>
                   </table>
                 </div>
@@ -362,62 +362,199 @@ const AdminReports = () => {
           <TabsContent value="users">
             <Card className="border-slate-200">
               <CardHeader>
-                <CardTitle>Tüm Kullanıcılar ({users.length})</CardTitle>
-                <CardDescription>Kullanıcı yetkileri sadece admin tarafından değiştirilebilir</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Tüm Kullanıcılar ({users.length})
+                </CardTitle>
+                <CardDescription>Kullanıcı yetkilerini, firma ve departman atamasını düzenleyin</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {users.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-sm">
-                      <div>
-                        <p className="font-semibold text-slate-900">{user.name}</p>
-                        <p className="text-sm text-slate-600">{user.email}</p>
-                        {user.company_name && (
-                          <p className="text-xs text-slate-500">Firma: {user.company_name}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {!user.approved && user.role === 'company' && (
-                          <Button
-                            size="sm"
-                            onClick={async () => {
-                              try {
-                                await api.put(`/users/${user.id}/approve`);
-                                toast.success('Kullanıcı onaylandı');
-                                fetchData();
-                              } catch (error) {
-                                toast.error('Onaylama başarısız');
-                              }
-                            }}
-                          >
-                            Onayla
-                          </Button>
-                        )}
-                        <select
-                          value={user.role}
-                          onChange={async (e) => {
-                            try {
-                              await api.put(`/users/${user.id}/role?role=${e.target.value}`);
-                              toast.success('Yetki güncellendi');
-                              fetchData();
-                            } catch (error) {
-                              toast.error('Yetki güncellenemedi');
-                            }
-                          }}
-                          className="flex h-10 rounded-sm border border-input bg-background px-3 py-2 text-sm"
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b-2 border-slate-200">
+                        <th className="text-left py-3 px-2">Ad Soyad</th>
+                        <th className="text-left py-3 px-2">E-posta</th>
+                        <th className="text-left py-3 px-2">Rol</th>
+                        <th className="text-left py-3 px-2">Firma</th>
+                        <th className="text-left py-3 px-2">Departman</th>
+                        <th className="text-left py-3 px-2">Durum</th>
+                        <th className="text-center py-3 px-2">İşlemler</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((u) => {
+                        const roleLabel = VALID_ROLES.find(r => r.value === u.role)?.label || u.role;
+                        return (
+                          <tr key={u.id} className="border-b border-slate-100 hover:bg-slate-50">
+                            <td className="py-3 px-2 font-medium">{u.name}</td>
+                            <td className="py-3 px-2 text-slate-600">{u.email}</td>
+                            <td className="py-3 px-2">
+                              <Badge className={
+                                u.role === 'admin' ? 'bg-red-100 text-red-700' :
+                                u.role === 'taff_manager' ? 'bg-purple-100 text-purple-700' :
+                                u.role === 'taff_staff' ? 'bg-blue-100 text-blue-700' :
+                                u.role === 'company_manager' ? 'bg-green-100 text-green-700' :
+                                'bg-slate-100 text-slate-700'
+                              }>
+                                {roleLabel}
+                              </Badge>
+                            </td>
+                            <td className="py-3 px-2">{u.company_name || '-'}</td>
+                            <td className="py-3 px-2">{u.department_name || '-'}</td>
+                            <td className="py-3 px-2">
+                              {u.approved ? (
+                                <Badge className="bg-green-100 text-green-700">Onaylı</Badge>
+                              ) : (
+                                <Badge className="bg-orange-100 text-orange-700">Bekliyor</Badge>
+                              )}
+                            </td>
+                            <td className="py-3 px-2 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                {!u.approved && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={async () => {
+                                      try {
+                                        await api.put(`/users/${u.id}/approve`);
+                                        toast.success('Kullanıcı onaylandı');
+                                        fetchData();
+                                      } catch (error) {
+                                        toast.error('Onaylama başarısız');
+                                      }
+                                    }}
+                                  >
+                                    Onayla
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleEditUser(u)}
+                                  title="Düzenle"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                {u.id !== user.id && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="text-red-500 hover:text-red-700"
+                                    onClick={() => handleDeleteUser(u.id)}
+                                    title="Sil"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Companies Tab */}
+          <TabsContent value="companies">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Companies */}
+              <Card className="border-slate-200">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5" />
+                    Firmalar ({companies.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleAddCompany} className="flex gap-2 mb-4">
+                    <Input
+                      placeholder="Firma adı"
+                      value={newCompany.name}
+                      onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
+                      className="flex-1"
+                    />
+                    <Button type="submit">
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Ekle
+                    </Button>
+                  </form>
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
+                    {companies.map((c) => (
+                      <div key={c.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <span className="font-medium">{c.name}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => handleDeleteCompany(c.id)}
                         >
-                          <option value="company">Firma</option>
-                          <option value="taff_staff">TAFF Personel</option>
-                          <option value="admin">Yönetici</option>
-                        </select>
-                        <Badge variant={
-                          user.role === 'admin' ? 'default' : 
-                          user.role === 'taff_staff' ? 'secondary' : 
-                          'outline'
-                        }>
-                          {user.role === 'admin' ? 'Admin' : 
-                           user.role === 'taff_staff' ? 'TAFF Personel' : 
-                           'Firma'}
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Departments */}
+              <Card className="border-slate-200">
+                <CardHeader>
+                  <CardTitle>Departmanlar ({departments.length})</CardTitle>
+                  <CardDescription>Firma seçip departman ekleyin</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleAddDepartment} className="flex gap-2 mb-4">
+                    <select
+                      value={newDepartment.company_id}
+                      onChange={(e) => setNewDepartment({ ...newDepartment, company_id: e.target.value })}
+                      className="flex h-10 w-40 rounded-sm border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      <option value="">Firma Seç</option>
+                      {companies.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                    <Input
+                      placeholder="Departman adı"
+                      value={newDepartment.name}
+                      onChange={(e) => setNewDepartment({ ...newDepartment, name: e.target.value })}
+                      className="flex-1"
+                    />
+                    <Button type="submit">
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Ekle
+                    </Button>
+                  </form>
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
+                    {departments.map((d) => {
+                      const comp = companies.find(c => c.id === d.company_id);
+                      return (
+                        <div key={d.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                          <div>
+                            <span className="font-medium">{d.name}</span>
+                            <span className="text-xs text-slate-500 ml-2">({comp?.name || 'Bilinmeyen'})</span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:text-red-700"
+                            onClick={() => handleDeleteDepartment(d.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
                         </Badge>
                       </div>
                     </div>
