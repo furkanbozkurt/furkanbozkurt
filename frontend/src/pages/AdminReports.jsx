@@ -716,6 +716,66 @@ const AdminReports = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* User Edit Dialog */}
+      <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Kullanıcı Düzenle</DialogTitle>
+            <DialogDescription>
+              {editingUser?.name} - {editingUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Rol</Label>
+              <select
+                value={editUserData.role}
+                onChange={(e) => setEditUserData({ ...editUserData, role: e.target.value })}
+                className="flex h-10 w-full rounded-sm border border-input bg-background px-3 py-2 text-sm"
+              >
+                {VALID_ROLES.map(r => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>Firma</Label>
+              <select
+                value={editUserData.company_id}
+                onChange={(e) => setEditUserData({ ...editUserData, company_id: e.target.value, department_id: '' })}
+                className="flex h-10 w-full rounded-sm border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Firma Seçilmedi</option>
+                {companies.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            {editUserData.company_id && (
+              <div className="space-y-2">
+                <Label>Departman</Label>
+                <select
+                  value={editUserData.department_id}
+                  onChange={(e) => setEditUserData({ ...editUserData, department_id: e.target.value })}
+                  className="flex h-10 w-full rounded-sm border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="">Departman Seçilmedi</option>
+                  {departments
+                    .filter(d => d.company_id === editUserData.company_id)
+                    .map(d => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                </select>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingUser(null)}>İptal</Button>
+            <Button onClick={handleSaveUser}>Kaydet</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
