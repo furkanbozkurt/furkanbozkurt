@@ -32,12 +32,26 @@ api_router = APIRouter(prefix="/api")
 security = HTTPBearer()
 
 # Models
+
+# Kullanıcı Rolleri:
+# - admin: Her şey yapabilir, rapor onaylar, silme yetkisi
+# - taff_manager: TAFF Yönetici (Admin ile aynı yetki)
+# - taff_staff: TAFF Personel - Sadece kendi araçları, ara rapor
+# - company_manager: Firma Yönetici - Kendi firmasının tüm onaylı raporları
+# - company_staff: Firma Personel - Sadece kendi departmanının onaylı raporları
+
+VALID_ROLES = ["admin", "taff_manager", "taff_staff", "company_manager", "company_staff"]
+TAFF_ROLES = ["admin", "taff_manager", "taff_staff"]
+ADMIN_ROLES = ["admin", "taff_manager"]
+COMPANY_ROLES = ["company_manager", "company_staff"]
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
     name: str
-    role: str = "company"  # admin, taff_staff (TAFF personel), company (firma)
-    company_id: Optional[str] = None  # Firma ID
+    role: str = "company_staff"
+    company_id: Optional[str] = None
+    department_id: Optional[str] = None  # Departman ID
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -50,7 +64,10 @@ class User(BaseModel):
     name: str
     role: str
     company_id: Optional[str] = None
-    approved: bool = False  # Admin onayı
+    company_name: Optional[str] = None
+    department_id: Optional[str] = None
+    department_name: Optional[str] = None
+    approved: bool = False
     created_at: str
 
 class Token(BaseModel):
@@ -58,22 +75,36 @@ class Token(BaseModel):
     token_type: str
     user: User
 
+# Departman modeli
+class DepartmentCreate(BaseModel):
+    name: str
+    company_id: str
+
+class Department(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    company_id: str
+    created_at: str
+
 class VehiclePhoto(BaseModel):
-    category: str  # general, dashboard, seats, hood, coolant
+    category: str  # general, dashboard, seats, hood, coolant, defect (arıza)
     url: str
+    description: Optional[str] = None  # Fotoğraf açıklaması
 
 class VehicleCreate(BaseModel):
     plate: str
-    brand: str  # Brand name for now, will store as is
+    brand: str
     model: str
-    company_id: str  # Firma ID (zorunlu)
+    company_id: str
     fuel_status: str
     notes: Optional[str] = ""
     photos: List[VehiclePhoto] = []
     customer_email: Optional[str] = None
-    km_start: int  # Starting kilometer
-    receive_location: str  # Teslim alma noktası
-    deliver_location: Optional[str] = None  # Will be set during delivery
+    km_start: int
+    receive_location: str
+    deliver_location: Optional[str] = None
+    estimated_test_km: Optional[int] = None  # Tahmini test km (100, 250, 500, 1000, veya özel)
 
 class Vehicle(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -81,25 +112,31 @@ class Vehicle(BaseModel):
     plate: str
     brand: str
     model: str
-    company_id: str  # Firma ID
-    company: Optional[str] = None  # Firma adı
+    company_id: str
+    company: Optional[str] = None
     fuel_status: str
     notes: str
     photos: List[VehiclePhoto]
-    status: str  # received, in_testing, delivered
+    status: str  # received, in_pool, in_testing, pending_approval, delivered
     received_at: str
     received_by: str
-    received_by_name: Optional[str] = None  # Teslim alan kişi adı
+    received_by_name: Optional[str] = None
     delivered_at: Optional[str] = None
     delivered_by: Optional[str] = None
     customer_email: Optional[str] = None
     km_start: int
     km_end: Optional[int] = None
+    current_km: Optional[int] = None  # Mevcut km (havuzda güncellenir)
     total_km: Optional[int] = None
+    estimated_test_km: Optional[int] = None  # Tahmini test km
+    remaining_test_km: Optional[int] = None  # Kalan test km
     receive_location: str
     deliver_location: Optional[str] = None
     test_drive_count: int = 0
     total_fuel_added: int = 0
+    is_approved: bool = False  # Admin onayı
+    early_delivery_reason: Optional[str] = None  # Erken teslim açıklaması
+    early_delivery_photos: List[str] = []  # Erken teslim fotoğrafları
 
 class VehicleDeliver(BaseModel):
     notes: Optional[str] = ""
