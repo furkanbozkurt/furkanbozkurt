@@ -12,9 +12,15 @@ import TestDriveAdd from '@/pages/TestDriveAdd';
 import InterimReportAdd from '@/pages/InterimReportAdd';
 import FinalReport from '@/pages/FinalReport';
 import DeliveredVehicles from '@/pages/DeliveredVehicles';
+import PendingApprovals from '@/pages/PendingApprovals';
 import '@/App.css';
 
-function PrivateRoute({ children, allowedRoles = ['admin', 'taff_staff', 'company'] }) {
+const ADMIN_ROLES = ['admin', 'taff_manager'];
+const TAFF_ROLES = ['admin', 'taff_manager', 'taff_staff'];
+const COMPANY_ROLES = ['company_manager', 'company_staff'];
+const ALL_ROLES = [...TAFF_ROLES, ...COMPANY_ROLES];
+
+function PrivateRoute({ children, allowedRoles = ALL_ROLES }) {
   const token = localStorage.getItem('valetpro_token');
   const user = JSON.parse(localStorage.getItem('valetpro_user') || '{}');
   
@@ -24,7 +30,7 @@ function PrivateRoute({ children, allowedRoles = ['admin', 'taff_staff', 'compan
   
   if (!allowedRoles.includes(user.role)) {
     // Redirect based on user role
-    if (user.role === 'company') {
+    if (COMPANY_ROLES.includes(user.role)) {
       return <Navigate to="/customer" />;
     } else {
       return <Navigate to="/" />;
@@ -40,16 +46,17 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<PrivateRoute allowedRoles={['admin', 'taff_staff']}><Dashboard /></PrivateRoute>} />
-          <Route path="/receive" element={<PrivateRoute allowedRoles={['admin', 'taff_staff']}><VehicleReceive /></PrivateRoute>} />
+          <Route path="/" element={<PrivateRoute allowedRoles={TAFF_ROLES}><Dashboard /></PrivateRoute>} />
+          <Route path="/receive" element={<PrivateRoute allowedRoles={TAFF_ROLES}><VehicleReceive /></PrivateRoute>} />
           <Route path="/vehicle/:id" element={<PrivateRoute><VehicleDetail /></PrivateRoute>} />
-          <Route path="/fuel/:vehicleId" element={<PrivateRoute allowedRoles={['admin', 'taff_staff']}><FuelAdd /></PrivateRoute>} />
-          <Route path="/test-drive/:vehicleId" element={<PrivateRoute allowedRoles={['admin', 'taff_staff']}><TestDriveAdd /></PrivateRoute>} />
-          <Route path="/interim-report/:vehicleId" element={<PrivateRoute allowedRoles={['admin', 'taff_staff']}><InterimReportAdd /></PrivateRoute>} />
+          <Route path="/fuel/:vehicleId" element={<PrivateRoute allowedRoles={TAFF_ROLES}><FuelAdd /></PrivateRoute>} />
+          <Route path="/test-drive/:vehicleId" element={<PrivateRoute allowedRoles={TAFF_ROLES}><TestDriveAdd /></PrivateRoute>} />
+          <Route path="/interim-report/:vehicleId" element={<PrivateRoute allowedRoles={TAFF_ROLES}><InterimReportAdd /></PrivateRoute>} />
           <Route path="/vehicle/:id/final-report" element={<PrivateRoute><FinalReport /></PrivateRoute>} />
-          <Route path="/delivered" element={<PrivateRoute allowedRoles={['admin', 'taff_staff']}><DeliveredVehicles /></PrivateRoute>} />
-          <Route path="/customer" element={<PrivateRoute allowedRoles={['company']}><CustomerPortal /></PrivateRoute>} />
-          <Route path="/reports" element={<PrivateRoute allowedRoles={['admin']}><AdminReports /></PrivateRoute>} />
+          <Route path="/delivered" element={<PrivateRoute allowedRoles={TAFF_ROLES}><DeliveredVehicles /></PrivateRoute>} />
+          <Route path="/pending-approvals" element={<PrivateRoute allowedRoles={ADMIN_ROLES}><PendingApprovals /></PrivateRoute>} />
+          <Route path="/customer" element={<PrivateRoute allowedRoles={COMPANY_ROLES}><CustomerPortal /></PrivateRoute>} />
+          <Route path="/reports" element={<PrivateRoute allowedRoles={ADMIN_ROLES}><AdminReports /></PrivateRoute>} />
         </Routes>
       </BrowserRouter>
       <Toaster position="top-center" />
