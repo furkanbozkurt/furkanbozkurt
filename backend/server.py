@@ -870,7 +870,7 @@ async def root():
 # Brands endpoints
 @api_router.post("/brands", response_model=Brand)
 async def create_brand(brand_data: BrandCreate, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ADMIN_ROLES:
         raise HTTPException(status_code=403, detail="Sadece yöneticiler marka ekleyebilir")
     
     # Check if brand already exists
@@ -895,7 +895,7 @@ async def get_brands():
 
 @api_router.delete("/brands/{brand_id}")
 async def delete_brand(brand_id: str, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ADMIN_ROLES:
         raise HTTPException(status_code=403, detail="Sadece yöneticiler marka silebilir")
     
     result = await db.brands.delete_one({"id": brand_id})
@@ -907,7 +907,7 @@ async def delete_brand(brand_id: str, current_user: dict = Depends(get_current_u
 # Locations endpoints
 @api_router.post("/locations", response_model=Location)
 async def create_location(location_data: LocationCreate, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ADMIN_ROLES:
         raise HTTPException(status_code=403, detail="Sadece yöneticiler lokasyon ekleyebilir")
     
     # Check if location already exists
@@ -932,7 +932,7 @@ async def get_locations():
 
 @api_router.delete("/locations/{location_id}")
 async def delete_location(location_id: str, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ADMIN_ROLES:
         raise HTTPException(status_code=403, detail="Sadece yöneticiler lokasyon silebilir")
     
     result = await db.locations.delete_one({"id": location_id})
