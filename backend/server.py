@@ -362,6 +362,9 @@ async def login(credentials: UserLogin):
         name=user["name"],
         role=user["role"],
         company_id=user.get("company_id"),
+        company_name=company_name,
+        department_id=user.get("department_id"),
+        department_name=department_name,
         approved=user.get("approved", False),
         created_at=user["created_at"]
     )
@@ -370,25 +373,60 @@ async def login(credentials: UserLogin):
 
 @api_router.get("/auth/me", response_model=User)
 async def get_me(current_user: dict = Depends(get_current_user)):
-    return User(**current_user)
+    # Get company and department names
+    company_name = ""
+    department_name = ""
+    if current_user.get("company_id"):
+        company = await db.companies.find_one({"id": current_user["company_id"]}, {"_id": 0, "name": 1})
+        company_name = company["name"] if company else ""
+    if current_user.get("department_id"):
+        department = await db.departments.find_one({"id": current_user["department_id"]}, {"_id": 0, "name": 1})
+        department_name = department["name"] if department else ""
+    
+    return User(
+        id=current_user["id"],
+        email=current_user["email"],
+        name=current_user["name"],
+        role=current_user["role"],
+        company_id=current_user.get("company_id"),
+        company_name=company_name,
+        department_id=current_user.get("department_id"),
+        department_name=department_name,
+        approved=current_user.get("approved", False),
+        created_at=current_user["created_at"]
+    )
 
 # Admin: Get all users
 @api_router.get("/users", response_model=List[User])
 async def get_users(current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ADMIN_ROLES:
         raise HTTPException(status_code=403, detail="Sadece yöneticiler kullanıcı listesini görebilir")
     
     users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    
+    # Add company and department names
+    for u in users:
+        if u.get("company_id"):
+            company = await db.companies.find_one({"id": u["company_id"]}, {"_id": 0, "name": 1})
+            u["company_name"] = company["name"] if company else ""
+        else:
+            u["company_name"] = ""
+        if u.get("department_id"):
+            department = await db.departments.find_one({"id": u["department_id"]}, {"_id": 0, "name": 1})
+            u["department_name"] = department["name"] if department else ""
+        else:
+            u["department_name"] = ""
+    
     return [User(**u) for u in users]
 
 # Admin: Update user role
 @api_router.put("/users/{user_id}/role")
 async def update_user_role(user_id: str, role: str, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ADMIN_ROLES:
         raise HTTPException(status_code=403, detail="Sadece yöneticiler yetki değiştirebilir")
     
-    if role not in ["admin", "taff_staff", "company"]:
-        raise HTTPException(status_code=400, detail="Geçersiz rol")
+    if role not in VALID_ROLES:
+        raise HTTPException(status_code=400, detail=f"Geçersiz rol. Geçerli roller: {', '.join(VALID_ROLES)}")
     
     result = await db.users.update_one({"id": user_id}, {"$set": {"role": role}})
     if result.modified_count == 0:
@@ -396,10 +434,51 @@ async def update_user_role(user_id: str, role: str, current_user: dict = Depends
     
     return {"message": "Kullanıcı yetkisi güncellendi"}
 
+# Admin: Update user company and department
+class UserCompanyUpdate(BaseModel):
+    company_id: Optional[str] = None
+    department_id: Optional[str] = None
+
+@api_router.put("/users/{user_id}/company")
+async def update_user_company(user_id: str, data: UserCompanyUpdate, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] not in ADMIN_ROLES:
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler firma atayabilir")
+    
+    update_data = {}
+    if data.company_id is not None:
+        update_data["company_id"] = data.company_id
+    if data.department_id is not None:
+        update_data["department_id"] = data.department_id
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Güncellenecek veri yok")
+    
+    result = await db.users.update_one({"id": user_id}, {"$set": update_data})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    
+    return {"message": "Kullanıcı firma/departman bilgisi güncellendi"}
+
+# Admin: Delete user
+@api_router.delete("/users/{user_id}")
+async def delete_user(user_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] not in ADMIN_ROLES:
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler kullanıcı silebilir")
+    
+    # Prevent deleting yourself
+    if user_id == current_user["id"]:
+        raise HTTPException(status_code=400, detail="Kendinizi silemezsiniz")
+    
+    result = await db.users.delete_one({"id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    
+    return {"message": "Kullanıcı silindi"}
+
 # Admin: Approve user
 @api_router.put("/users/{user_id}/approve")
 async def approve_user(user_id: str, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ADMIN_ROLES:
         raise HTTPException(status_code=403, detail="Sadece yöneticiler kullanıcı onaylayabilir")
     
     result = await db.users.update_one({"id": user_id}, {"$set": {"approved": True}})
@@ -407,6 +486,48 @@ async def approve_user(user_id: str, current_user: dict = Depends(get_current_us
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
     
     return {"message": "Kullanıcı onaylandı"}
+
+# Department endpoints
+@api_router.post("/departments", response_model=Department)
+async def create_department(dept_data: DepartmentCreate, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] not in ADMIN_ROLES:
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler departman ekleyebilir")
+    
+    # Check company exists
+    company = await db.companies.find_one({"id": dept_data.company_id}, {"_id": 0})
+    if not company:
+        raise HTTPException(status_code=404, detail="Firma bulunamadı")
+    
+    dept_id = str(uuid.uuid4())
+    dept_doc = {
+        "id": dept_id,
+        "name": dept_data.name,
+        "company_id": dept_data.company_id,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.departments.insert_one(dept_doc)
+    return Department(**dept_doc)
+
+@api_router.get("/departments", response_model=List[Department])
+async def get_departments(company_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    query = {}
+    if company_id:
+        query["company_id"] = company_id
+    
+    departments = await db.departments.find(query, {"_id": 0}).to_list(1000)
+    return [Department(**d) for d in departments]
+
+@api_router.delete("/departments/{dept_id}")
+async def delete_department(dept_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] not in ADMIN_ROLES:
+        raise HTTPException(status_code=403, detail="Sadece yöneticiler departman silebilir")
+    
+    result = await db.departments.delete_one({"id": dept_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Departman bulunamadı")
+    
+    return {"message": "Departman silindi"}
 
 # Companies endpoints
 @api_router.post("/companies", response_model=Company)
