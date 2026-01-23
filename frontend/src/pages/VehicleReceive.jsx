@@ -6,9 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import api from '@/lib/api';
-import { ArrowLeft, Camera, Upload, X } from 'lucide-react';
+import { ArrowLeft, Camera, Upload, X, Gauge } from 'lucide-react';
 
 const photoCategories = [
   { id: 'general', label: 'Genel Görünüm' },
@@ -16,6 +17,14 @@ const photoCategories = [
   { id: 'seats', label: 'Ön ve Arka Koltuk' },
   { id: 'hood', label: 'Kaput İçi' },
   { id: 'coolant', label: 'Motor Soğutma Sıvısı' }
+];
+
+const estimatedKmOptions = [
+  { value: '100', label: '100 km' },
+  { value: '250', label: '250 km' },
+  { value: '500', label: '500 km' },
+  { value: '1000', label: '1000 km' },
+  { value: 'custom', label: 'Diğer (Manuel Giriş)' }
 ];
 
 const VehicleReceive = () => {
@@ -33,8 +42,11 @@ const VehicleReceive = () => {
     notes: '',
     customer_email: '',
     km_start: '',
-    receive_location: ''
+    receive_location: '',
+    estimated_test_km: ''
   });
+  const [estimatedKmType, setEstimatedKmType] = useState('');
+  const [customEstimatedKm, setCustomEstimatedKm] = useState('');
   const [photos, setPhotos] = useState({});
 
   React.useEffect(() => {
