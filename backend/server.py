@@ -829,6 +829,11 @@ async def deliver_vehicle(vehicle_id: str, deliver_data: VehicleDeliver, current
         "remaining_test_km": max(0, estimated_km - driven_km)
     }
     
+    # Add early delivery info if applicable
+    if deliver_data.early_delivery_reason:
+        update_data["early_delivery_reason"] = deliver_data.early_delivery_reason
+        update_data["early_delivery_photos"] = deliver_data.early_delivery_photos
+    
     if deliver_data.notes:
         update_data["notes"] = vehicle["notes"] + "\n\nTeslim Notu: " + deliver_data.notes
     
@@ -840,7 +845,7 @@ async def deliver_vehicle(vehicle_id: str, deliver_data: VehicleDeliver, current
 # Admin: Delete vehicle
 @api_router.delete("/vehicles/{vehicle_id}")
 async def delete_vehicle(vehicle_id: str, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ADMIN_ROLES:
         raise HTTPException(status_code=403, detail="Sadece yöneticiler araç silebilir")
     
     vehicle = await db.vehicles.find_one({"id": vehicle_id}, {"_id": 0})
