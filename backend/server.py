@@ -944,16 +944,16 @@ async def delete_location(location_id: str, current_user: dict = Depends(get_cur
 # Fuel Records endpoints
 @api_router.post("/fuel-records", response_model=FuelRecord)
 async def create_fuel_record(fuel_data: FuelRecordCreate, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] not in ["admin", "taff_staff"]:
+    if current_user["role"] not in TAFF_ROLES:
         raise HTTPException(status_code=403, detail="Sadece TAFF personeli yakıt kaydı ekleyebilir")
     
-    # Verify vehicle exists and is received
+    # Verify vehicle exists and is in valid status
     vehicle = await db.vehicles.find_one({"id": fuel_data.vehicle_id}, {"_id": 0})
     if not vehicle:
         raise HTTPException(status_code=404, detail="Araç bulunamadı")
     
-    if vehicle["status"] != "received":
-        raise HTTPException(status_code=400, detail="Sadece teslimdeki araçlara yakıt eklenebilir")
+    if vehicle["status"] not in ["received", "in_pool", "in_testing"]:
+        raise HTTPException(status_code=400, detail="Sadece aktif araçlara yakıt eklenebilir")
     
     record_id = str(uuid.uuid4())
     fuel_doc = {
@@ -968,20 +968,31 @@ async def create_fuel_record(fuel_data: FuelRecordCreate, current_user: dict = D
     }
     
     await db.fuel_records.insert_one(fuel_doc)
+    
+    # Update vehicle total fuel
+    await db.vehicles.update_one(
+        {"id": fuel_data.vehicle_id},
+        {"$inc": {"total_fuel_added": fuel_data.amount}}
+    )
+    
     return FuelRecord(**fuel_doc)
 
 @api_router.get("/fuel-records/vehicle/{vehicle_id}", response_model=List[FuelRecord])
 async def get_vehicle_fuel_records(vehicle_id: str, current_user: dict = Depends(get_current_user)):
+    # Only TAFF can see fuel records (ara rapor)
+    if current_user["role"] not in TAFF_ROLES:
+        raise HTTPException(status_code=403, detail="Yakıt kayıtlarını görme yetkiniz yok")
+    
     fuel_records = await db.fuel_records.find(
         {"vehicle_id": vehicle_id},
         {"_id": 0}
     ).to_list(1000)
     return [FuelRecord(**r) for r in fuel_records]
 
-# Test Drives endpoints
+# Test Drives endpoints (Ara Rapor)
 @api_router.post("/test-drives", response_model=TestDrive)
 async def create_test_drive(test_data: TestDriveCreate, current_user: dict = Depends(get_current_user)):
-    if current_user["role"] not in ["admin", "taff_staff"]:
+    if current_user["role"] not in TAFF_ROLES:
         raise HTTPException(status_code=403, detail="Sadece TAFF personeli test sürüşü yapabilir")
     
     vehicle = await db.vehicles.find_one({"id": test_data.vehicle_id}, {"_id": 0})
@@ -989,11 +1000,11 @@ async def create_test_drive(test_data: TestDriveCreate, current_user: dict = Dep
         raise HTTPException(status_code=404, detail="Araç bulunamadı")
     
     # Check if vehicle is delivered (only admin can add to delivered vehicles)
-    if vehicle["status"] == "delivered" and current_user["role"] != "admin":
+    if vehicle["status"] in ["delivered", "pending_approval"] and current_user["role"] not in ADMIN_ROLES:
         raise HTTPException(status_code=400, detail="Teslim edilmiş araçlara sadece yöneticiler test sürüşü ekleyebilir")
     
     # Validate KM
-    last_km = vehicle.get("km_end") or vehicle.get("km_start", 0)
+    last_km = vehicle.get("current_km") or vehicle.get("km_start", 0)
     # Get last test drive KM if exists
     last_test = await db.test_drives.find(
         {"vehicle_id": test_data.vehicle_id},
@@ -1001,7 +1012,7 @@ async def create_test_drive(test_data: TestDriveCreate, current_user: dict = Dep
     ).sort("created_at", -1).limit(1).to_list(1)
     
     if last_test:
-        last_km = last_test[0]["km_end"]
+        last_km = max(last_km, last_test[0]["km_end"])
     
     if test_data.km_start < last_km:
         raise HTTPException(status_code=400, detail=f"Başlangıç KM son kayıttan ({last_km}) düşük olamaz")
