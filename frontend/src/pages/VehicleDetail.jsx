@@ -540,12 +540,24 @@ const VehicleDetail = () => {
       </main>
 
       {/* Deliver Dialog */}
-      <Dialog open={showDeliverDialog} onOpenChange={setShowDeliverDialog}>
-        <DialogContent data-testid="deliver-dialog">
+      <Dialog open={showDeliverDialog} onOpenChange={(open) => {
+        setShowDeliverDialog(open);
+        if (!open) {
+          setShowEarlyDeliveryWarning(false);
+          setEarlyDeliveryReason('');
+        }
+      }}>
+        <DialogContent data-testid="deliver-dialog" className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Araç Teslim Et</DialogTitle>
             <DialogDescription>
               {vehicle.brand} {vehicle.model} ({vehicle.plate}) plakalı aracı teslim etmek üzeresiniz.
+              {vehicle.estimated_test_km && (
+                <span className="block mt-2 text-sm">
+                  Tahmini Test KM: <strong>{vehicle.estimated_test_km?.toLocaleString('tr-TR')} km</strong> | 
+                  Kalan: <strong>{vehicle.remaining_test_km?.toLocaleString('tr-TR')} km</strong>
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -556,7 +568,10 @@ const VehicleDetail = () => {
                 type="number"
                 placeholder={`Başlangıç: ${vehicle.km_start} km`}
                 value={deliverKm}
-                onChange={(e) => setDeliverKm(e.target.value)}
+                onChange={(e) => {
+                  setDeliverKm(e.target.value);
+                  setShowEarlyDeliveryWarning(false);
+                }}
                 required
                 min={vehicle.km_start + 1}
                 data-testid="deliver-km-input"
@@ -582,6 +597,39 @@ const VehicleDetail = () => {
                 ))}
               </select>
             </div>
+            
+            {/* Erken Teslim Uyarısı */}
+            {showEarlyDeliveryWarning && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-3">
+                <div className="flex items-start gap-2">
+                  <div className="bg-orange-100 p-1 rounded">
+                    <FileText className="h-4 w-4 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-orange-800">Erken Teslim Uyarısı</p>
+                    <p className="text-sm text-orange-700">
+                      Tahmini test KM ({vehicle.estimated_test_km?.toLocaleString('tr-TR')} km) henüz tamamlanmadı. 
+                      Yapılan: {(parseInt(deliverKm) - vehicle.km_start)?.toLocaleString('tr-TR')} km
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="early-reason" className="text-orange-800">
+                    Erken Teslim Nedeni * <span className="text-xs font-normal">(Zorunlu)</span>
+                  </Label>
+                  <Textarea
+                    id="early-reason"
+                    placeholder="Örn: Araçta arıza tespit edildi, müşteri talebi üzerine erken teslim edildi..."
+                    value={earlyDeliveryReason}
+                    onChange={(e) => setEarlyDeliveryReason(e.target.value)}
+                    rows={3}
+                    className="border-orange-200 focus:border-orange-400"
+                    data-testid="early-delivery-reason-input"
+                  />
+                </div>
+              </div>
+            )}
+            
             <div className="space-y-2">
               <Label htmlFor="deliver-notes">Teslim Notu (Opsiyonel)</Label>
               <Textarea
@@ -595,11 +643,15 @@ const VehicleDetail = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeliverDialog(false)} data-testid="cancel-deliver-btn">
+            <Button variant="outline" onClick={() => {
+              setShowDeliverDialog(false);
+              setShowEarlyDeliveryWarning(false);
+              setEarlyDeliveryReason('');
+            }} data-testid="cancel-deliver-btn">
               İptal
             </Button>
             <Button onClick={handleDeliver} disabled={delivering} data-testid="confirm-deliver-btn">
-              {delivering ? 'Teslim Ediliyor...' : 'Teslim Et'}
+              {delivering ? 'Teslim Ediliyor...' : showEarlyDeliveryWarning ? 'Erken Teslim Et' : 'Teslim Et'}
             </Button>
           </DialogFooter>
         </DialogContent>
